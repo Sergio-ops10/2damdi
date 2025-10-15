@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/">
+    <title>2damdi</title>
+    <link href="https://sergio-ops10.github.io/2damdi/feed.xml" rel="self" />
+    <link href="https://sergio-ops10.github.io/2damdi" />
+    <updated>2025-10-15T14:03:55+02:00</updated>
+    <author>
+        <name>Sergio López Albuixech</name>
+    </author>
+    <id>https://sergio-ops10.github.io/2damdi</id>
+
+    <entry>
+        <title>Documentacion Pomodoro</title>
+        <author>
+            <name>Sergio López Albuixech</name>
+        </author>
+        <link href="https://sergio-ops10.github.io/2damdi/documentacion-pomodoro.html"/>
+        <id>https://sergio-ops10.github.io/2damdi/documentacion-pomodoro.html</id>
+
+        <updated>2025-10-15T14:03:55+02:00</updated>
+            <summary>
+                <![CDATA[
+                    asfasasfasfasfsafaas
+                ]]>
+            </summary>
+        <content type="html">
+            <![CDATA[
+                <p>asfasasfasfasfsafaas</p>
+            ]]>
+        </content>
+    </entry>
+</feed>

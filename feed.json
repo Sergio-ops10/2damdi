@@ -1,0 +1,27 @@
+{
+    "version": "https://jsonfeed.org/version/1",
+    "title": "2damdi",
+    "description": "",
+    "home_page_url": "https://sergio-ops10.github.io/2damdi",
+    "feed_url": "https://sergio-ops10.github.io/2damdi/feed.json",
+    "user_comment": "",
+    "author": {
+        "name": "Sergio López Albuixech"
+    },
+    "items": [
+        {
+            "id": "https://sergio-ops10.github.io/2damdi/documentacion-pomodoro.html",
+            "url": "https://sergio-ops10.github.io/2damdi/documentacion-pomodoro.html",
+            "title": "Documentacion Pomodoro",
+            "summary": "asfasasfasfasfsafaas",
+            "content_html": "<p>asfasasfasfasfsafaas</p>",
+            "author": {
+                "name": "Sergio López Albuixech"
+            },
+            "tags": [
+            ],
+            "date_published": "2025-10-15T14:03:55+02:00",
+            "date_modified": "2025-10-15T14:03:55+02:00"
+        }
+    ]
+}
