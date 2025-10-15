@@ -1,21 +1,19 @@
 // Sticky menu
-let lastScrollPosition = 0;
+let newScrollPosition = 0;
+let lastScrollPosition;
 const header = document.getElementById("js-header");
 const stickyMenu = document.getElementById("js-navbar-menu");
 
 window.addEventListener('scroll', () => {
-    const currentScrollPosition = window.scrollY;
+    lastScrollPosition = window.scrollY;
 
     // Scrolling down
-    if (currentScrollPosition > lastScrollPosition && currentScrollPosition > 60) {
+    if (newScrollPosition < lastScrollPosition && lastScrollPosition > 90) {
         header.classList.remove("is-visible");
         header.classList.add("is-hidden");
-        if (stickyMenu) {
-            stickyMenu.classList.add("is-sticky");
-        }
-    } 
-    // Scrolling up
-    else if (currentScrollPosition < lastScrollPosition) {
+
+        // Scrolling up
+    } else if (newScrollPosition > lastScrollPosition && lastScrollPosition > 89) {
         header.classList.remove("is-hidden");
         header.classList.add("is-visible");
         if (stickyMenu) {
@@ -23,15 +21,15 @@ window.addEventListener('scroll', () => {
         }
     }
 
-    // Reached top
-    if (currentScrollPosition < 1) {
+    if (lastScrollPosition < 1) {
         header.classList.remove("is-visible");
+
         if (stickyMenu) {
             stickyMenu.classList.remove("is-sticky");
         }
     }
 
-    lastScrollPosition = currentScrollPosition;
+    newScrollPosition = lastScrollPosition;
 });
 
 
@@ -535,6 +533,35 @@ window.addEventListener('scroll', () => {
         }
     }
 })();
+
+// Load search input area
+const searchButton = document.querySelector('.js-search-btn');
+const searchOverlay = document.querySelector('.js-search-overlay');
+const searchInput = document.querySelector('[type="search"]');
+
+if (searchButton) {
+    searchButton.addEventListener('click', (e) => {
+        e.stopPropagation();
+        searchOverlay.classList.toggle('expanded');
+
+        if (searchInput) {
+            setTimeout(() => {
+                if (searchOverlay.classList.contains('expanded')) {
+                    searchInput.focus();
+                }
+            }, 60);
+        }
+    });
+
+    searchOverlay.addEventListener('click', (e) => {
+        e.stopPropagation();
+    });
+
+    document.body.addEventListener('click', () => {
+        searchOverlay.classList.remove('expanded');
+    });
+}
+
 
 // Responsive embeds script
 (function () {
