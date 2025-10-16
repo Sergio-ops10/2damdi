@@ -3,7 +3,7 @@
     <title>2damdi</title>
     <link href="https://sergio-ops10.github.io/2damdi/feed.xml" rel="self" />
     <link href="https://sergio-ops10.github.io/2damdi" />
-    <updated>2025-10-17T00:17:21+02:00</updated>
+    <updated>2025-10-17T00:32:46+02:00</updated>
     <author>
         <name>Sergio López Albuixech</name>
     </author>
@@ -16,16 +16,19 @@
         </author>
         <link href="https://sergio-ops10.github.io/2damdi/documentacion-pomodoro.html"/>
         <id>https://sergio-ops10.github.io/2damdi/documentacion-pomodoro.html</id>
+        <media:content url="https://sergio-ops10.github.io/2damdi/media/posts/1/Captura-de-pantalla-2025-10-17-002444.png" medium="image" />
 
         <updated>2025-10-15T14:03:55+02:00</updated>
             <summary>
                 <![CDATA[
-                    Aqui mueestro las siguientes indicaciones que le he ido dando a gemini&hellip;
+                        <img src="https://sergio-ops10.github.io/2damdi/media/posts/1/Captura-de-pantalla-2025-10-17-002444.png" alt="" />
+                    Aqui muestro las siguientes indicaciones que le he ido dando a gemini&hellip;
                 ]]>
             </summary>
         <content type="html">
             <![CDATA[
-                <h2>Aqui mueestro las siguientes indicaciones que le he ido dando a gemini para hacer la app</h2>
+                    <p><img src="https://sergio-ops10.github.io/2damdi/media/posts/1/Captura-de-pantalla-2025-10-17-002444.png" class="type:primaryImage" alt="" /></p>
+                <h2>Aqui muestro las siguientes indicaciones que le he ido dando a gemini para hacer la app</h2>
 <p> </p>
 <p> </p>
 <ol>
