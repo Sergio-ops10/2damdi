@@ -1,0 +1,1486 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reproductor de Audio con Calendario</title>
+    <!-- Cargamos Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* --- VARIABLES DE COLOR CSS --- */
+        :root {
+            --color-day-bg: #ffffff;
+            --color-day-text: #111827;
+            --color-today-bg: #fef9c3;
+            --color-today-border: #fde047;
+            --color-selected-bg: #dbeafe;
+            --color-selected-border: #3b82f6;
+            --color-audio-bg: #d1fae5;
+            --color-audio-border: #6ee7b7;
+            --color-button-bg: #3b82f6;
+            --color-button-text: #ffffff;
+        }
+
+        /* --- ESTILOS VISTA MES --- */
+        .day-cell {
+            background-color: var(--color-day-bg);
+            color: var(--color-day-text);
+            border: 1px solid #e5e7eb; /* Borde gris por defecto */
+            min-height: 80px; /* Altura mínima para celdas de mes */
+        }
+        .day-cell.has-audio {
+            background-color: var(--color-audio-bg);
+            border: 1px solid var(--color-audio-border);
+            font-weight: bold;
+        }
+        .day-cell.selected {
+            background-color: var(--color-selected-bg);
+            border: 2px solid var(--color-selected-border);
+            box-shadow: 0 0 0 2px var(--color-selected-bg);
+        }
+        .day-cell.today {
+            background-color: var(--color-today-bg);
+            border: 1px solid var(--color-today-border);
+        }
+        .day-cell.has-notes {
+            position: relative;
+        }
+        .day-cell.has-notes::after {
+            content: '';
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--color-selected-border, #3b82f6);
+            border: 1px solid white;
+        }
+
+        /* --- ESTILOS VISTA SEMANA --- */
+        .week-day-column {
+            border-left: 1px solid #e5e7eb;
+            padding: 8px;
+            min-height: 200px;
+        }
+        .week-day-column:first-child {
+            border-left: none;
+        }
+        .week-day-header {
+            font-weight: 600;
+            text-align: center;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .week-day-column.today {
+            background-color: var(--color-today-bg);
+        }
+
+        /* --- ESTILOS VISTA AGENDA --- */
+        .agenda-day-item {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .agenda-day-header {
+            background-color: #f9fafb;
+            padding: 12px 16px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .agenda-day-header.today {
+            background-color: var(--color-today-bg);
+            border-bottom-color: var(--color-today-border);
+        }
+        .agenda-day-content {
+            padding: 12px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .agenda-item-summary {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.875rem;
+            color: #374151;
+        }
+        .agenda-item-summary.completed {
+            text-decoration: line-through;
+            color: #9ca3af;
+        }
+
+        /* --- ESTILOS TAREAS (COMPARTIDO) --- */
+        .task-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            background-color: #f9fafb;
+            transition: background-color 0.2s;
+        }
+        .task-item.editing {
+            background-color: #fef9c3;
+        }
+        .task-item.completed {
+            background-color: #f0fdf4;
+        }
+        .task-item input[type="checkbox"] {
+            width: 1rem;
+            height: 1rem;
+            border-radius: 0.25rem;
+        }
+        .task-text-span {
+            flex-grow: 1;
+            color: #374151;
+        }
+        .task-text-span[contenteditable="true"] {
+            outline: 2px solid var(--color-selected-border, #3b82f6);
+            border-radius: 4px;
+            padding: 0 4px;
+            background-color: white;
+        }
+        .task-item.completed .task-text-span {
+            text-decoration: line-through;
+            color: #6b7280;
+        }
+        .task-item .task-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        .task-item button {
+            background: none;
+            border: none;
+            color: #6b7280;
+            font-weight: bold;
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 9999px;
+            line-height: 1;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .task-item button.delete-task-btn {
+            color: #ef4444;
+        }
+        .task-item button:hover {
+            background-color: #f3f4f6;
+        }
+        .task-item button.delete-task-btn:hover {
+            background-color: #fee2e2;
+        }
+        .task-item.editing .reminder-btn,
+        .task-item.editing .delete-task-btn {
+            display: none;
+        }
+        .task-item button svg {
+            width: 1rem;
+            height: 1rem;
+        }
+        .task-item-reminder {
+            font-size: 0.75rem;
+            color: #4b5563;
+            margin-left: 1.75rem;
+            display: block;
+            margin-top: -4px;
+        }
+        .task-item-reminder.past-due {
+            color: #dc2626;
+            font-weight: 500;
+        }
+
+        /* --- ESTILOS GENERALES --- */
+        .btn-nav {
+            background-color: var(--color-button-bg);
+            color: var(--color-button-text);
+            transition: filter 0.2s;
+        }
+        .btn-nav:hover {
+            filter: brightness(90%);
+        }
+        
+        /* --- NUEVO: ESTILOS INTERRUPTOR DE VISTA --- */
+        .view-switcher-btn {
+            padding: 8px 16px;
+            border: 1px solid #d1d5db; /* gray-300 */
+            background-color: #ffffff; /* white */
+            color: #374151; /* gray-700 */
+            font-weight: 500;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .view-switcher-btn:first-child {
+            border-top-left-radius: 6px;
+            border-bottom-left-radius: 6px;
+        }
+        .view-switcher-btn:last-child {
+            border-top-right-radius: 6px;
+            border-bottom-right-radius: 6px;
+        }
+        .view-switcher-btn.active {
+            background-color: var(--color-button-bg);
+            color: var(--color-button-text);
+            border-color: var(--color-button-bg);
+            z-index: 10;
+        }
+        .view-switcher-btn:not(.active):hover {
+            background-color: #f9fafb; /* gray-50 */
+        }
+
+        input[type="color"] {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0;
+            border-radius: 8px;
+        }
+        input[type="color"]::-webkit-color-swatch {
+            border: 1px solid #a0aec0;
+            border-radius: 8px;
+        }
+        input[type="color"]::-moz-color-swatch {
+            border: 1px solid #a0aec0;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans p-5">
+
+    <!-- --- BANNER DE NOTIFICACIONES --- -->
+    <div id="notification-banner" class="hidden fixed top-0 left-0 right-0 bg-blue-600 text-white p-4 text-center z-[100]">
+        <p>¡Permite las notificaciones para recibir recordatorios de tus tareas!</p>
+        <button id="request-permission-btn" class="mt-2 bg-white text-blue-700 font-bold py-1 px-3 rounded-lg shadow hover:bg-gray-100 transition">
+            Activar Notificaciones
+        </button>
+    </div>
+
+    <div class="max-w-6xl mx-auto bg-white rounded-lg shadow-xl p-6 relative mt-16"> <!-- max-w-6xl para más espacio -->
+        <!-- Botones de Ajustes y Búsqueda -->
+        <div class="absolute top-6 right-6 flex gap-4">
+            <button id="search-open-btn" class="p-2 rounded-lg hover:bg-gray-200 transition" title="Buscar en notas">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+            </button>
+            <button id="settings-open-btn" class="p-2 rounded-lg hover:bg-gray-200 transition" title="Abrir Ajustes">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826 3.31 2.37-2.37.996.608 2.296.096 2.572-1.065z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+            </button>
+        </div>
+
+        <h1 id="main-calendar-title" class="text-3xl font-bold text-center text-gray-800 mb-6">Calendario Interactivo</h1>
+
+        <!-- Contenedor del Calendario y Vistas -->
+        <div id="calendar-container" class="mb-6">
+            <!-- Navegación y Vistas -->
+            <div class="flex justify-between items-center mb-4">
+                <!-- Botones de Navegación (refactorizados) -->
+                <button id="prev-btn" class="btn-nav font-bold py-2 px-4 rounded-lg transition duration-200">&lt; Anterior</button>
+                
+                <!-- Título de la Vista (dinámico) -->
+                <span id="current-view-title" class="text-2xl font-semibold text-gray-700 text-center"></span>
+                
+                <button id="next-btn" class="btn-nav font-bold py-2 px-4 rounded-lg transition duration-200">Siguiente &gt;</button>
+            </div>
+
+            <!-- NUEVO: Interruptor de Vistas -->
+            <div class="flex justify-center mb-4">
+                <div id="view-switcher" class="flex rounded-md shadow-sm">
+                    <button id="month-view-btn" class="view-switcher-btn active" data-view="month">Mes</button>
+                    <button id="week-view-btn" class="view-switcher-btn" data-view="week">Semana</button>
+                    <button id="agenda-view-btn" class="view-switcher-btn" data-view="agenda">Agenda</button>
+                </div>
+            </div>
+
+            <!-- Contenedores de Vistas -->
+            
+            <!-- VISTA MES -->
+            <div id="month-view-container">
+                <div class="grid grid-cols-7 gap-2 text-center font-medium text-gray-600 mb-2">
+                    <div>Dom</div> <div>Lun</div> <div>Mar</div> <div>Mié</div> <div>Jue</div> <div>Vie</div> <div>Sáb</div>
+                </div>
+                <div id="calendar-days" class="grid grid-cols-7 gap-2">
+                    <!-- Los días del mes se generarán con JavaScript -->
+                </div>
+            </div>
+
+            <!-- NUEVA: VISTA SEMANA -->
+            <div id="week-view-container" class="hidden">
+                <div id="week-days-headers" class="grid grid-cols-7 gap-0 text-center font-medium text-gray-600 mb-2">
+                    <!-- Cabeceras de semana (Dom 1, Lun 2, ...) -->
+                </div>
+                <div id="week-days-columns" class="grid grid-cols-7 gap-0">
+                    <!-- Columnas de semana con tareas -->
+                </div>
+            </div>
+            
+            <!-- NUEVA: VISTA AGENDA -->
+            <div id="agenda-view-container" class="hidden max-h-[600px] overflow-y-auto space-y-4 p-2">
+                <!-- Lista de días con eventos -->
+            </div>
+        </div>
+
+        <!-- Panel de Detalles del Día (Refactorizado) -->
+        <!-- Sigue siendo un panel único que se actualiza al hacer clic en un día desde CUALQUIER vista -->
+        <div id="day-details-container" class="border-t pt-6">
+            
+            <div id="day-details" class="hidden">
+                <h3 id="selected-date" class="text-xl font-semibold text-gray-700 mb-4"></h3>
+                <div class="mb-4">
+                    <label for="audio-file" class="block text-sm font-medium text-gray-700 mb-2">Asignar un audio para este día:</label>
+                    <input type="file" id="audio-file" accept="audio/*" class="block w-full text-sm text-gray-900
+                        file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold
+                        file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                </div>
+                <button id="clear-audio" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200 hidden">
+                    Quitar Audio
+                </button>
+                <audio id="audio-player" controls class="w-full mt-4"></audio>
+
+                <!-- SECCIÓN DE TAREAS -->
+                <div class="mt-6 border-t pt-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-3">Tareas del día:</label>
+                    <div id="task-list" class="space-y-2 mb-4">
+                        <!-- Las tareas se generarán con JS aquí -->
+                    </div>
+                    <div class="flex gap-2">
+                        <input type="text" id="new-task-input" class="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500" placeholder="Añadir nueva tarea...">
+                        <button id="add-task-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded-lg transition duration-200">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <!-- --- FIN DE SECCIÓN DE TAREAS --- -->
+            </div>
+
+            <div id="initial-message" class="text-center text-gray-500 p-6">
+                <p>Haz clic en un día para ver sus detalles, asignar un audio o añadir tareas.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- --- MODAL DE AJUSTES (Sin cambios) --- -->
+    <div id="settings-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-lg relative">
+            <!-- Botón de Cerrar Modal -->
+            <button id="settings-close-btn" class="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-200 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Ajustes</h2>
+
+            <!-- Ajuste del Título -->
+            <div class="mb-6 border-b pb-6">
+                <label for="settings-calendar-title" class="block text-gray-700 mb-2">Título del Calendario</label>
+                <input type="text" id="settings-calendar-title" class="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+            </div>
+
+            <!-- Contenedor de Opciones de Color -->
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Ajustes de Color</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                <!-- Opciones de color -->
+                <div class="flex justify-between items-center">
+                    <label for="settings-day-bg" class="text-gray-700">Fondo Días</label>
+                    <input type="color" id="settings-day-bg">
+                </div>
+                <div class="flex justify-between items-center">
+                    <label for="settings-day-text" class="text-gray-700">Texto Días</label>
+                    <input type="color" id="settings-day-text">
+                </div>
+                <div class="flex justify-between items-center">
+                    <label for="settings-today-bg" class="text-gray-700">Fondo (Hoy)</label>
+                    <input type="color" id="settings-today-bg">
+                </div>
+                <div class="flex justify-between items-center">
+                    <label for="settings-selected-bg" class="text-gray-700">Fondo (Seleccionado)</label>
+                    <input type="color" id="settings-selected-bg">
+                </div>
+                <div class="flex justify-between items-center">
+                    <label for="settings-audio-bg" class="text-gray-700">Fondo (Con Audio)</label>
+                    <input type="color" id="settings-audio-bg">
+                </div>
+                <div class="flex justify-between items-center">
+                    <label for="settings-button-bg" class="text-gray-700">Botones Navegación</label>
+                    <input type="color" id="settings-button-bg">
+                </div>
+                <div class="flex justify-between items-center">
+                    <label for="settings-button-text" class="text-gray-700">Texto Botones</label>
+                    <input type="color" id="settings-button-text">
+                </div>
+            </div>
+
+            <!-- Botones del Modal -->
+            <div class="flex justify-end gap-4 mt-8 border-t pt-6">
+                <button id="settings-reset-btn" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg transition">
+                    Restaurar
+                </button>
+                <button id="settings-save-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition">
+                    Guardar
+                </button>
+            </div>
+            
+            <!-- SECCIÓN EXPORTAR/IMPORTAR -->
+            <div class="mt-8 border-t pt-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Copia de Seguridad</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <button id="export-data-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition">
+                        Exportar Datos (.json)
+                    </button>
+                    <div>
+                        <label for="import-data-input" class="block w-full text-center bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg transition cursor-pointer">
+                            Importar Datos
+                        </label>
+                        <input type="file" id="import-data-input" class="hidden" accept=".json">
+                    </div>
+                </div>
+                <p id="import-status-msg" class="text-sm text-gray-600 mt-3 text-center"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- --- MODAL DE BÚSQUEDA (Sin cambios) --- -->
+    <div id="search-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center p-4 pt-20 z-40 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl relative">
+            <button id="search-close-btn" class="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-200 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Búsqueda Global</h2>
+            <input type="text" id="search-input" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500" placeholder="Buscar en todas las tareas...">
+            <div id="search-results-container" class="mt-6 max-h-80 overflow-y-auto space-y-3">
+                <p id="search-placeholder" class="text-gray-500 text-center">Escribe 2 o más caracteres para buscar.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- --- MODAL DE RECORDATORIO (Sin cambios) --- -->
+    <div id="reminder-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-sm relative">
+            <button id="reminder-close-btn" class="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-200 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Programar Recordatorio</h2>
+            <p id="reminder-task-text" class="text-gray-700 mb-4 p-2 bg-gray-100 rounded-lg"></p>
+            <label for="reminder-datetime" class="block text-sm font-medium text-gray-700 mb-2">Fecha y Hora:</label>
+            <input type="datetime-local" id="reminder-datetime" class="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+            <div class="flex justify-between gap-4 mt-8 pt-6 border-t">
+                <button id="reminder-clear-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition">
+                    Quitar
+                </button>
+                <button id="reminder-save-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition">
+                    Guardar
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- REFERENCIAS AL DOM (MODIFICADAS) ---
+            const currentViewTitleEl = document.getElementById('current-view-title');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const mainCalendarTitleEl = document.getElementById('main-calendar-title');
+
+            // Contenedores de vistas
+            const monthViewContainer = document.getElementById('month-view-container');
+            const weekViewContainer = document.getElementById('week-view-container');
+            const agendaViewContainer = document.getElementById('agenda-view-container');
+            const calendarDaysEl = document.getElementById('calendar-days');
+            const weekDaysHeadersEl = document.getElementById('week-days-headers');
+            const weekDaysColumnsEl = document.getElementById('week-days-columns');
+            
+            // Botones de cambio de vista
+            const viewSwitcherEl = document.getElementById('view-switcher');
+            const monthViewBtn = document.getElementById('month-view-btn');
+            const weekViewBtn = document.getElementById('week-view-btn');
+            const agendaViewBtn = document.getElementById('agenda-view-btn');
+            
+            // Panel de detalles (sin cambios, solo referencias)
+            const dayDetailsContainerEl = document.getElementById('day-details-container');
+            const dayDetailsEl = document.getElementById('day-details');
+            const selectedDateEl = document.getElementById('selected-date');
+            const audioFileEl = document.getElementById('audio-file');
+            const clearAudioBtn = document.getElementById('clear-audio');
+            const audioPlayerEl = document.getElementById('audio-player');
+            const initialMessageEl = document.getElementById('initial-message');
+
+            // Tareas (sin cambios)
+            const taskListEl = document.getElementById('task-list');
+            const newTaskInputEl = document.getElementById('new-task-input');
+            const addTaskBtn = document.getElementById('add-task-btn');
+
+            // Ajustes (sin cambios)
+            const settingsOpenBtn = document.getElementById('settings-open-btn');
+            const settingsModal = document.getElementById('settings-modal');
+            const settingsCloseBtn = document.getElementById('settings-close-btn');
+            const settingsSaveBtn = document.getElementById('settings-save-btn');
+            const settingsResetBtn = document.getElementById('settings-reset-btn');
+            const settingsCalendarTitleEl = document.getElementById('settings-calendar-title');
+            const colorInputs = {
+                dayBg: document.getElementById('settings-day-bg'),
+                dayText: document.getElementById('settings-day-text'),
+                todayBg: document.getElementById('settings-today-bg'),
+                selectedBg: document.getElementById('settings-selected-bg'),
+                audioBg: document.getElementById('settings-audio-bg'),
+                buttonBg: document.getElementById('settings-button-bg'),
+                buttonText: document.getElementById('settings-button-text')
+            };
+
+            // Exportar/Importar (sin cambios)
+            const exportDataBtn = document.getElementById('export-data-btn');
+            const importDataInput = document.getElementById('import-data-input');
+            const importStatusMsg = document.getElementById('import-status-msg');
+
+            // Búsqueda (sin cambios)
+            const searchOpenBtn = document.getElementById('search-open-btn');
+            const searchModal = document.getElementById('search-modal');
+            const searchCloseBtn = document.getElementById('search-close-btn');
+            const searchInput = document.getElementById('search-input');
+            const searchResultsContainer = document.getElementById('search-results-container');
+            const searchPlaceholder = document.getElementById('search-placeholder');
+
+            // Notificaciones (sin cambios)
+            const notificationBanner = document.getElementById('notification-banner');
+            const requestPermissionBtn = document.getElementById('request-permission-btn');
+            const reminderModal = document.getElementById('reminder-modal');
+            const reminderCloseBtn = document.getElementById('reminder-close-btn');
+            const reminderSaveBtn = document.getElementById('reminder-save-btn');
+            const reminderClearBtn = document.getElementById('reminder-clear-btn');
+            const reminderDatetimeInput = document.getElementById('reminder-datetime');
+            const reminderTaskTextEl = document.getElementById('reminder-task-text');
+
+            // --- ESTADO DE LA APLICACIÓN ---
+            let currentDate = new Date(); 
+            let selectedDateKey = null; 
+            let dayDatabase = {}; 
+            let currentView = 'month'; // 'month', 'week', 'agenda'
+            const DB_KEY = 'calendarDayDB';
+            const OLD_DB_KEY = 'calendarAudioDB'; 
+            let currentTaskKey = { dateKey: null, taskIndex: -1 }; 
+
+            // --- ESTADO (AJUSTES) ---
+            const DB_SETTINGS_KEY = 'calendarColorSettings';
+            const defaultSettings = {
+                calendarTitle: 'Calendario Interactivo', // Título actualizado
+                dayBg: '#ffffff',
+                dayText: '#111827',
+                todayBg: '#fef9c3',
+                todayBorder: '#fde047',
+                selectedBg: '#dbeafe',
+                selectedBorder: '#3b82f6',
+                audioBg: '#d1fae5',
+                audioBorder: '#6ee7b7',
+                buttonBg: '#3b82f6',
+                buttonText: '#ffffff'
+            };
+            const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+            const dayNames = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
+            const dayNamesLong = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+
+
+            // --- INICIALIZACIÓN ---
+            loadDayDatabase();
+            loadColorSettings();
+            render(); // Llamada a la función de renderizado principal
+            initializeNotifications();
+
+            // --- MANEJADORES DE EVENTOS ---
+            
+            // Navegación (refactorizada)
+            prevBtn.addEventListener('click', () => {
+                if (currentView === 'month') {
+                    currentDate.setMonth(currentDate.getMonth() - 1);
+                } else if (currentView === 'week') {
+                    currentDate.setDate(currentDate.getDate() - 7);
+                }
+                render();
+            });
+            nextBtn.addEventListener('click', () => {
+                if (currentView === 'month') {
+                    currentDate.setMonth(currentDate.getMonth() + 1);
+                } else if (currentView === 'week') {
+                    currentDate.setDate(currentDate.getDate() + 7);
+                }
+                render();
+            });
+
+            // Cambio de Vista
+            viewSwitcherEl.addEventListener('click', (e) => {
+                const button = e.target.closest('.view-switcher-btn');
+                if (button && button.dataset.view) {
+                    currentView = button.dataset.view;
+                    // Oculta el panel de detalles al cambiar de vista
+                    dayDetailsEl.classList.add('hidden');
+                    initialMessageEl.classList.remove('hidden');
+                    selectedDateKey = null;
+                    render();
+                }
+            });
+
+            // Panel de detalles (sin cambios)
+            audioFileEl.addEventListener('change', handleFileChange);
+            clearAudioBtn.addEventListener('click', clearAudioForDay);
+            addTaskBtn.addEventListener('click', addTask);
+            newTaskInputEl.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') addTask();
+            });
+            taskListEl.addEventListener('click', handleTaskListClick);
+
+            // Ajustes (sin cambios)
+            settingsOpenBtn.addEventListener('click', () => settingsModal.classList.remove('hidden'));
+            settingsCloseBtn.addEventListener('click', () => settingsModal.classList.add('hidden'));
+            settingsModal.addEventListener('click', (e) => {
+                if (e.target === settingsModal) settingsModal.classList.add('hidden');
+            });
+            settingsSaveBtn.addEventListener('click', saveColorSettings);
+            settingsResetBtn.addEventListener('click', resetColorSettings);
+
+            // Exportar/Importar (sin cambios)
+            exportDataBtn.addEventListener('click', exportData);
+            importDataInput.addEventListener('change', importData);
+            
+            // Búsqueda (sin cambios)
+            searchOpenBtn.addEventListener('click', () => searchModal.classList.remove('hidden'));
+            searchCloseBtn.addEventListener('click', () => searchModal.classList.add('hidden'));
+            searchModal.addEventListener('click', (e) => {
+                if (e.target === searchModal) searchModal.classList.add('hidden');
+            });
+            searchInput.addEventListener('input', performSearch);
+
+            // Notificaciones (sin cambios)
+            requestPermissionBtn.addEventListener('click', requestNotificationPermission);
+            reminderCloseBtn.addEventListener('click', () => reminderModal.classList.add('hidden'));
+            reminderModal.addEventListener('click', (e) => {
+                if (e.target === reminderModal) reminderModal.classList.add('hidden');
+            });
+            reminderSaveBtn.addEventListener('click', saveReminder);
+            reminderClearBtn.addEventListener('click', clearReminder);
+
+
+            // --- LÓGICA DE RENDERIZADO PRINCIPAL (NUEVA) ---
+            
+            /**
+             * Función principal que decide qué vista renderizar
+             */
+            function render() {
+                // Actualizar botones de vista
+                document.querySelectorAll('.view-switcher-btn').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.view === currentView);
+                });
+
+                // Ocultar todos los contenedores de vista
+                monthViewContainer.classList.add('hidden');
+                weekViewContainer.classList.add('hidden');
+                agendaViewContainer.classList.add('hidden');
+                
+                // Mostrar/ocultar botones de navegación
+                if (currentView === 'agenda') {
+                    prevBtn.classList.add('invisible'); // Oculta pero mantiene espacio
+                    nextBtn.classList.add('invisible');
+                } else {
+                    prevBtn.classList.remove('invisible');
+                    nextBtn.classList.remove('invisible');
+                }
+
+                // Llamar a la función de renderizado específica
+                if (currentView === 'month') {
+                    monthViewContainer.classList.remove('hidden');
+                    renderMonthView();
+                } else if (currentView === 'week') {
+                    weekViewContainer.classList.remove('hidden');
+                    renderWeekView();
+                } else if (currentView === 'agenda') {
+                    agendaViewContainer.classList.remove('hidden');
+                    renderAgendaView();
+                }
+            }
+
+
+            // --- LÓGICA VISTA MES (Refactorizada) ---
+            /**
+             * (Antes 'renderCalendar') Renderiza la vista de Mes
+             */
+            function renderMonthView() {
+                const year = currentDate.getFullYear();
+                const month = currentDate.getMonth();
+                currentViewTitleEl.textContent = `${monthNames[month]} ${year}`;
+                calendarDaysEl.innerHTML = '';
+                
+                const firstDayOfMonth = new Date(year, month, 1).getDay();
+                const lastDateOfMonth = new Date(year, month + 1, 0).getDate();
+                const today = new Date();
+                const todayKey = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
+
+                for (let i = 0; i < firstDayOfMonth; i++) {
+                    calendarDaysEl.appendChild(createEmptyDayCell());
+                }
+                for (let day = 1; day <= lastDateOfMonth; day++) {
+                    const dateKey = `${year}-${month}-${day}`;
+                    const dayCell = createDayCell(day, dateKey);
+                    
+                    if (dateKey === todayKey) {
+                        dayCell.classList.add('today');
+                    }
+                    if (dayDatabase[dateKey]?.audio) {
+                        dayCell.classList.add('has-audio');
+                    }
+                    if (dayDatabase[dateKey]?.tasks?.length > 0) {
+                        dayCell.classList.add('has-notes');
+                    }
+                    if (dateKey === selectedDateKey) {
+                        dayCell.classList.add('selected');
+                    }
+                    calendarDaysEl.appendChild(dayCell);
+                }
+            }
+            function createEmptyDayCell() {
+                const cell = document.createElement('div');
+                cell.className = 'p-4 border rounded-lg bg-gray-50 opacity-50';
+                return cell;
+            }
+            function createDayCell(day, dateKey) {
+                const cell = document.createElement('div');
+                cell.className = 'day-cell p-2 rounded-lg text-left cursor-pointer transition duration-150 hover:bg-gray-100 align-top';
+                cell.textContent = day;
+                cell.dataset.key = dateKey;
+                cell.addEventListener('click', () => onDayClick(dateKey)); // Llama a onDayClick
+                return cell;
+            }
+            
+            
+            // --- LÓGICA VISTA SEMANA (NUEVA) ---
+            
+            /**
+             * Renderiza la vista de Semana
+             */
+            function renderWeekView() {
+                weekDaysHeadersEl.innerHTML = '';
+                weekDaysColumnsEl.innerHTML = '';
+                
+                const today = new Date();
+                const todayKey = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
+                
+                // Encontrar el inicio de la semana (Domingo)
+                let startOfWeek = new Date(currentDate);
+                startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+                
+                let endOfWeek = new Date(startOfWeek);
+                endOfWeek.setDate(endOfWeek.getDate() + 6);
+                
+                // Formato de título: "3 Nov - 9 Nov, 2025" o "27 Oct - 2 Nov, 2025"
+                const startMonth = monthNames[startOfWeek.getMonth()].slice(0, 3);
+                const endMonth = monthNames[endOfWeek.getMonth()].slice(0, 3);
+                let title = `Semana del ${startOfWeek.getDate()} ${startMonth}`;
+                if (startOfWeek.getMonth() !== endOfWeek.getMonth()) {
+                    title = `${startOfWeek.getDate()} ${startMonth} - ${endOfWeek.getDate()} ${endMonth}, ${endOfWeek.getFullYear()}`;
+                } else {
+                    title = `${startOfWeek.getDate()} - ${endOfWeek.getDate()} ${endMonth}, ${endOfWeek.getFullYear()}`;
+                }
+                currentViewTitleEl.textContent = title;
+
+                let dayIterator = new Date(startOfWeek);
+                
+                for (let i = 0; i < 7; i++) {
+                    const dateKey = `${dayIterator.getFullYear()}-${dayIterator.getMonth()}-${dayIterator.getDate()}`;
+                    
+                    // Renderizar cabecera (Dom 1, Lun 2, ...)
+                    const headerEl = document.createElement('div');
+                    headerEl.className = 'week-day-header';
+                    headerEl.innerHTML = `${dayNames[i]} <span class="font-normal text-gray-500">${dayIterator.getDate()}</span>`;
+                    weekDaysHeadersEl.appendChild(headerEl);
+
+                    // Renderizar columna
+                    const columnEl = document.createElement('div');
+                    columnEl.className = 'week-day-column';
+                    columnEl.dataset.key = dateKey;
+                    if (dateKey === todayKey) {
+                        columnEl.classList.add('today');
+                    }
+                    
+                    // Añadir contenido (audio, tareas)
+                    const dayData = dayDatabase[dateKey];
+                    if (dayData) {
+                        if (dayData.audio) {
+                            columnEl.appendChild(createSummaryItem('🎧 Audio Asignado', 'audio'));
+                        }
+                        if (dayData.tasks) {
+                            dayData.tasks.forEach(task => {
+                                columnEl.appendChild(createSummaryItem(task.text, 'task', task.completed));
+                            });
+                        }
+                    }
+                    
+                    // Añadir listener para abrir detalles
+                    columnEl.addEventListener('click', () => onDayClick(dateKey));
+                    weekDaysColumnsEl.appendChild(columnEl);
+                    
+                    dayIterator.setDate(dayIterator.getDate() + 1);
+                }
+            }
+            
+            /**
+             * Crea un item resumen para las vistas de semana y agenda
+             */
+            function createSummaryItem(text, type, completed = false) {
+                const itemEl = document.createElement('div');
+                itemEl.className = 'agenda-item-summary p-1 rounded';
+                let icon = type === 'audio' ? '🎧' : (completed ? '✅' : '⬜');
+                itemEl.innerHTML = `<span>${icon}</span> <span class="truncate">${escapeHTML(text)}</span>`;
+                if (completed) {
+                    itemEl.classList.add('completed');
+                }
+                return itemEl;
+            }
+            
+            
+            // --- LÓGICA VISTA AGENDA (NUEVA) ---
+            
+            /**
+             * Renderiza la vista de Agenda
+             */
+            function renderAgendaView() {
+                currentViewTitleEl.textContent = 'Agenda (Próximos 30 días)';
+                agendaViewContainer.innerHTML = '';
+                
+                const today = new Date();
+                today.setHours(0, 0, 0, 0); // Empezar desde hoy
+                
+                const endDate = new Date(today);
+                endDate.setDate(endDate.getDate() + 30); // Mirar 30 días en el futuro
+                
+                // 1. Obtener y ordenar claves
+                const sortedKeys = Object.keys(dayDatabase)
+                    .map(key => {
+                        const [y, m, d] = key.split('-').map(Number);
+                        return { key, date: new Date(y, m, d) };
+                    })
+                    .filter(item => item.date >= today && item.date <= endDate && (dayDatabase[item.key].audio || dayDatabase[item.key].tasks?.length > 0))
+                    .sort((a, b) => a.date - b.date);
+                    
+                if (sortedKeys.length === 0) {
+                    agendaViewContainer.innerHTML = '<p class="text-center text-gray-500 p-4">No hay eventos ni tareas en los próximos 30 días.</p>';
+                    return;
+                }
+                
+                const todayKey = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
+                
+                // 2. Renderizar items
+                sortedKeys.forEach(item => {
+                    const { key, date } = item;
+                    const dayData = dayDatabase[key];
+                    
+                    const dayItemEl = document.createElement('div');
+                    dayItemEl.className = 'agenda-day-item';
+                    
+                    // Cabecera del día
+                    const headerEl = document.createElement('div');
+                    headerEl.className = 'agenda-day-header cursor-pointer hover:bg-gray-100';
+                    if (key === todayKey) {
+                        headerEl.classList.add('today');
+                    }
+                    const dayName = dayNamesLong[date.getDay()];
+                    const dateString = `${date.getDate()} de ${monthNames[date.getMonth()]} de ${date.getFullYear()}`;
+                    headerEl.innerHTML = `<span class="font-bold text-lg">${dayName}</span><span class="text-gray-600">, ${dateString}</span>`;
+                    headerEl.addEventListener('click', () => onDayClick(key));
+                    
+                    // Contenido del día
+                    const contentEl = document.createElement('div');
+                    contentEl.className = 'agenda-day-content';
+                    
+                    if (dayData.audio) {
+                        contentEl.appendChild(createSummaryItem('Audio Asignado', 'audio'));
+                    }
+                    if (dayData.tasks) {
+                        dayData.tasks.forEach(task => {
+                            contentEl.appendChild(createSummaryItem(task.text, 'task', task.completed));
+                        });
+                    }
+                    
+                    dayItemEl.appendChild(headerEl);
+                    dayItemEl.appendChild(contentEl);
+                    agendaViewContainer.appendChild(dayItemEl);
+                });
+            }
+
+            
+            // --- MANEJADORES DE DÍAS (Refactorizado) ---
+            
+            /**
+             * Manejador de clic en un día (desde cualquier vista)
+             * (Refactorizado)
+             */
+            function onDayClick(dateKey) {
+                selectedDateKey = dateKey;
+                
+                // Actualiza el panel de detalles
+                updateDetailsPanel(dateKey);
+                
+                // Vuelve a renderizar la vista actual para mostrar la selección (solo en vista Mes)
+                if (currentView === 'month') {
+                    render();
+                }
+            }
+
+            /**
+             * Actualiza el panel de detalles con la info del dateKey
+             * (Refactorizado)
+             */
+            function updateDetailsPanel(dateKey) {
+                initialMessageEl.classList.add('hidden');
+                dayDetailsEl.classList.remove('hidden');
+                
+                const [year, month, d] = dateKey.split('-');
+                selectedDateEl.textContent = `Detalles para: ${d} de ${monthNames[month]} ${year}`;
+                audioFileEl.value = '';
+
+                // Asegura que la entrada de datos exista
+                if (!dayDatabase[selectedDateKey]) {
+                    dayDatabase[selectedDateKey] = { audio: null, tasks: [] };
+                }
+                const dayData = dayDatabase[selectedDateKey];
+
+                // Cargar audio
+                if (dayData?.audio) {
+                    audioPlayerEl.src = dayData.audio;
+                    clearAudioBtn.classList.remove('hidden');
+                } else {
+                    audioPlayerEl.src = '';
+                    clearAudioBtn.classList.add('hidden');
+                }
+
+                // Renderizar tareas
+                renderTasks(dayData.tasks || []);
+            }
+
+
+            // --- LÓGICA DE DATOS (REFACTORIZADA) ---
+            function loadDayDatabase() {
+                const db = localStorage.getItem(DB_KEY);
+                dayDatabase = db ? JSON.parse(db) : {};
+                const oldDbString = localStorage.getItem(OLD_DB_KEY);
+                let dataMigrated = false;
+
+                // Migración 1: de 'calendarAudioDB'
+                if (oldDbString) {
+                    console.log("Migrando datos antiguos de 'calendarAudioDB'...");
+                    const oldDb = JSON.parse(oldDbString);
+                    Object.keys(oldDb).forEach(key => {
+                        if (typeof oldDb[key] === 'string' && !dayDatabase[key]) {
+                            dayDatabase[key] = { audio: oldDb[key], tasks: [] };
+                        }
+                    });
+                    localStorage.removeItem(OLD_DB_KEY);
+                    dataMigrated = true;
+                }
+
+                // Migración 2: de 'notes' (string) a 'tasks' (array) y añadir IDs
+                Object.keys(dayDatabase).forEach(key => {
+                    const dayData = dayDatabase[key];
+                    if (dayData && dayData.notes && typeof dayData.notes === 'string') {
+                        console.warn(`Migrando 'notes' a 'tasks' para ${key}`);
+                        dayData.tasks = dayData.tasks || [];
+                        if (dayData.notes.trim()) {
+                            dayData.tasks.unshift({ text: dayData.notes, completed: false });
+                        }
+                        delete dayData.notes;
+                        dataMigrated = true;
+                    }
+                    if (dayData && !Array.isArray(dayData.tasks)) {
+                        dayData.tasks = [];
+                    }
+                    if (dayData && dayData.tasks) {
+                        dayData.tasks.forEach(task => {
+                            if (task.id === undefined) {
+                                task.id = Date.now().toString() + Math.random().toString(16);
+                                task.reminder = null;
+                                task.reminderFired = false;
+                                dataMigrated = true;
+                            }
+                        });
+                    }
+                });
+
+                if (dataMigrated) {
+                    saveDayDatabase();
+                }
+            }
+            function saveDayDatabase() {
+                localStorage.setItem(DB_KEY, JSON.stringify(dayDatabase));
+            }
+
+            // --- LÓGICA AUDIO (Sin cambios) ---
+            function handleFileChange(event) {
+                if (!selectedDateKey || !event.target.files || event.target.files.length === 0) return;
+                const file = event.target.files[0];
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const audioDataUrl = e.target.result;
+                    if (!dayDatabase[selectedDateKey]) {
+                        dayDatabase[selectedDateKey] = { audio: null, tasks: [] };
+                    }
+                    dayDatabase[selectedDateKey].audio = audioDataUrl;
+                    saveDayDatabase();
+                    audioPlayerEl.src = audioDataUrl;
+                    audioPlayerEl.play();
+                    clearAudioBtn.classList.remove('hidden');
+                    render(); // Vuelve a renderizar la vista actual
+                };
+                reader.readAsDataURL(file);
+            }
+            function clearAudioForDay() {
+                if (!selectedDateKey || !dayDatabase[selectedDateKey]) return;
+                dayDatabase[selectedDateKey].audio = null;
+                if (!dayDatabase[selectedDateKey].audio && dayDatabase[selectedDateKey].tasks.length === 0) {
+                    delete dayDatabase[selectedDateKey];
+                }
+                saveDayDatabase();
+                audioPlayerEl.src = '';
+                clearAudioBtn.classList.add('hidden');
+                render(); // Vuelve a renderizar la vista actual
+            }
+
+            // --- LÓGICA DE TAREAS (Sin cambios, excepto 'render') ---
+            function renderTasks(tasks) {
+                taskListEl.innerHTML = '';
+                if (!tasks || tasks.length === 0) {
+                    taskListEl.innerHTML = '<p class="text-sm text-gray-500 italic">No hay tareas para este día.</p>';
+                    return;
+                }
+                tasks.forEach((task, index) => {
+                    const taskEl = document.createElement('div');
+                    taskEl.className = 'task-item';
+                    if (task.completed) taskEl.classList.add('completed');
+                    taskEl.dataset.index = index;
+
+                    let reminderHtml = '';
+                    if (task.reminder) {
+                        const reminderDate = new Date(task.reminder);
+                        const isPast = reminderDate < new Date();
+                        reminderHtml = `
+                            <span class="task-item-reminder ${isPast && !task.reminderFired ? 'past-due' : ''}">
+                                🔔 ${reminderDate.toLocaleString('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                        `;
+                    }
+                    
+                    taskEl.innerHTML = `
+                        <input type="checkbox" ${task.completed ? 'checked' : ''}>
+                        <span class="task-text-span">${escapeHTML(task.text)}</span>
+                        <div class="task-actions">
+                            <button class="edit-task-btn" title="Editar tarea">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
+                                </svg>
+                            </button>
+                            <button class="reminder-btn" title="Programar recordatorio">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.06 5.455 1.31m5.714 0a24.267 24.267 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
+                                </svg>
+                            </button>
+                            <button class="delete-task-btn" title="Eliminar tarea">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12.54 0c.342.052.682.107 1.022.166m3.74 0c-.317.052-.64.105-.973.157m-4.522 0h14.31a2.25 2.25 0 0 0 2.244-2.077L19.24 5.79m-14.456 0a48.108 48.108 0 0 1 3.478-.397m12.54 0c-.342.052-.682.107-1.022.166" />
+                                </svg>
+                            </button>
+                        </div>
+                    `;
+                    taskListEl.appendChild(taskEl);
+                    if (reminderHtml) {
+                        taskEl.insertAdjacentHTML('afterend', reminderHtml);
+                    }
+                });
+            }
+            function addTask() {
+                if (!selectedDateKey) return;
+                const text = newTaskInputEl.value.trim();
+                if (!text) return;
+                const task = { 
+                    id: Date.now().toString() + Math.random().toString(16),
+                    text: text, 
+                    completed: false,
+                    reminder: null,
+                    reminderFired: false
+                };
+                if (!dayDatabase[selectedDateKey]) {
+                    dayDatabase[selectedDateKey] = { audio: null, tasks: [] };
+                }
+                dayDatabase[selectedDateKey].tasks.push(task);
+                saveDayDatabase();
+                renderTasks(dayDatabase[selectedDateKey].tasks);
+                render(); // Vuelve a renderizar la vista actual (para actualizar puntos/sumarios)
+                newTaskInputEl.value = '';
+            }
+            function handleTaskListClick(e) {
+                if (!selectedDateKey) return;
+                const tasks = dayDatabase[selectedDateKey].tasks;
+                const taskEl = e.target.closest('.task-item');
+                if (!taskEl) return;
+                const index = parseInt(taskEl.dataset.index, 10);
+                const taskTextEl = taskEl.querySelector('.task-text-span');
+                const editBtn = e.target.closest('.edit-task-btn');
+
+                if (e.target.closest('.delete-task-btn')) {
+                    if (taskEl.classList.contains('editing')) return;
+                    tasks.splice(index, 1);
+                    saveDayDatabase();
+                    renderTasks(tasks);
+                    render(); // Vuelve a renderizar la vista actual
+                }
+                else if (e.target.type === 'checkbox') {
+                    if (taskEl.classList.contains('editing')) {
+                        e.preventDefault();
+                        return;
+                    }
+                    tasks[index].completed = e.target.checked;
+                    saveDayDatabase();
+                    taskEl.classList.toggle('completed', e.target.checked);
+                    taskTextEl.classList.toggle('line-through', e.target.checked);
+                    render(); // Vuelve a renderizar la vista actual (para actualizar sumarios)
+                }
+                else if (e.target.closest('.reminder-btn')) {
+                    if (taskEl.classList.contains('editing')) return;
+                    openReminderModal(selectedDateKey, index);
+                }
+                else if (editBtn) {
+                    if (taskEl.classList.contains('editing')) {
+                        taskTextEl.contentEditable = false;
+                        taskEl.classList.remove('editing');
+                        const newText = taskTextEl.textContent.trim();
+                        if (newText) {
+                            tasks[index].text = newText;
+                            saveDayDatabase();
+                            render(); // Vuelve a renderizar la vista actual
+                        } else {
+                            taskTextEl.textContent = tasks[index].text;
+                        }
+                        editBtn.innerHTML = `
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
+                            </svg>`;
+                    } else {
+                        taskTextEl.contentEditable = true;
+                        taskEl.classList.add('editing');
+                        taskTextEl.focus();
+                        const range = document.createRange();
+                        range.selectNodeContents(taskTextEl);
+                        const sel = window.getSelection();
+                        sel.removeAllRanges();
+                        sel.addRange(range);
+                        editBtn.innerHTML = `
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                            </svg>`;
+                    }
+                }
+            }
+
+            // --- LÓGICA DE NOTIFICACIONES (Sin cambios, excepto 'render') ---
+            function initializeNotifications() {
+                if (!('Notification' in window)) {
+                    console.error("Este navegador no soporta Notificaciones.");
+                    return;
+                }
+                if (Notification.permission === 'granted') {
+                    checkDueNotifications();
+                    setInterval(checkDueNotifications, 60000);
+                } else if (Notification.permission === 'default') {
+                    notificationBanner.classList.remove('hidden');
+                    document.querySelector('.max-w-6xl').style.marginTop = '6rem';
+                }
+            }
+            async function requestNotificationPermission() {
+                try {
+                    const permission = await Notification.requestPermission();
+                    if (permission === 'granted') {
+                        notificationBanner.classList.add('hidden');
+                        document.querySelector('.max-w-6xl').style.marginTop = '';
+                        checkDueNotifications();
+                        setInterval(checkDueNotifications, 60000);
+                    } else {
+                        notificationBanner.innerHTML = '<p>No has permitido las notificaciones. Puedes activarlas en los ajustes de tu navegador.</p>';
+                    }
+                } catch (error) {
+                    console.error("Error pidiendo permiso de notificación:", error);
+                }
+            }
+            function checkDueNotifications() {
+                if (Notification.permission !== 'granted') return;
+                const now = Date.now();
+                let didNotify = false;
+                Object.keys(dayDatabase).forEach(dateKey => {
+                    const dayData = dayDatabase[dateKey];
+                    if (dayData.tasks) {
+                        dayData.tasks.forEach(task => {
+                            if (task.reminder && task.reminder <= now && !task.reminderFired) {
+                                new Notification("Recordatorio de Tarea", {
+                                    body: task.text,
+                                    icon: 'https://placehold.co/192x192/blue/white?text=🔔',
+                                    tag: task.id
+                                });
+                                task.reminderFired = true;
+                                didNotify = true;
+                            }
+                        });
+                    }
+                });
+                if (didNotify) {
+                    saveDayDatabase();
+                    if (selectedDateKey && dayDatabase[selectedDateKey]) {
+                        renderTasks(dayDatabase[selectedDateKey].tasks);
+                    }
+                    render(); // Vuelve a renderizar la vista actual
+                }
+            }
+            function openReminderModal(dateKey, taskIndex) {
+                currentTaskKey = { dateKey, taskIndex };
+                const task = dayDatabase[dateKey].tasks[taskIndex];
+                reminderTaskTextEl.textContent = task.text;
+                if (task.reminder) {
+                    const d = new Date(task.reminder);
+                    reminderDatetimeInput.value = d.toISOString().slice(0, 16);
+                } else {
+                    const tomorrow = new Date();
+                    tomorrow.setDate(tomorrow.getDate() + 1);
+                    tomorrow.setHours(9, 0, 0, 0);
+                    reminderDatetimeInput.value = tomorrow.toISOString().slice(0, 16);
+                }
+                reminderModal.classList.remove('hidden');
+            }
+            function saveReminder() {
+                const { dateKey, taskIndex } = currentTaskKey;
+                if (!dateKey || taskIndex === -1) return;
+                const datetimeValue = reminderDatetimeInput.value;
+                if (!datetimeValue) {
+                    reminderDatetimeInput.classList.add('border-red-500', 'ring-red-500');
+                    return;
+                }
+                reminderDatetimeInput.classList.remove('border-red-500', 'ring-red-500');
+                const timestamp = new Date(datetimeValue).getTime();
+                if (timestamp > Date.now()) {
+                    dayDatabase[dateKey].tasks[taskIndex].reminderFired = false;
+                }
+                dayDatabase[dateKey].tasks[taskIndex].reminder = timestamp;
+                saveDayDatabase();
+                renderTasks(dayDatabase[dateKey].tasks);
+                reminderModal.classList.add('hidden');
+            }
+            function clearReminder() {
+                const { dateKey, taskIndex } = currentTaskKey;
+                if (!dateKey || taskIndex === -1) return;
+                dayDatabase[dateKey].tasks[taskIndex].reminder = null;
+                dayDatabase[dateKey].tasks[taskIndex].reminderFired = false;
+                saveDayDatabase();
+                renderTasks(dayDatabase[dateKey].tasks);
+                reminderModal.classList.add('hidden');
+            }
+
+            // --- LÓGICA DE BÚSQUEDA (Sin cambios) ---
+            function formatDateKey(dateKey) {
+                const [year, month, day] = dateKey.split('-');
+                return `${day} de ${monthNames[month]} ${year}`;
+            }
+            function performSearch() {
+                const query = searchInput.value.toLowerCase().trim();
+                if (query.length < 2) {
+                    searchResultsContainer.innerHTML = '';
+                    searchPlaceholder.textContent = 'Escribe 2 o más caracteres para buscar.';
+                    searchResultsContainer.appendChild(searchPlaceholder);
+                    return;
+                }
+                let results = [];
+                Object.keys(dayDatabase).forEach(dateKey => {
+                    const dayData = dayDatabase[dateKey];
+                    if (dayData.tasks && dayData.tasks.length > 0) {
+                        dayData.tasks.forEach(task => {
+                            if (task.text.toLowerCase().includes(query)) {
+                                results.push({ dateKey: dateKey, task: task });
+                            }
+                        });
+                    }
+                });
+                renderSearchResults(results, query);
+            }
+            function renderSearchResults(results, query) {
+                searchResultsContainer.innerHTML = '';
+                if (results.length === 0) {
+                    searchPlaceholder.textContent = 'No se encontraron coincidencias.';
+                    searchResultsContainer.appendChild(searchPlaceholder);
+                    return;
+                }
+                results.forEach(result => {
+                    const resultEl = document.createElement('div');
+                    resultEl.className = 'p-3 rounded-lg hover:bg-gray-100 cursor-pointer border border-gray-200';
+                    const highlightedText = escapeHTML(result.task.text).replace(
+                        new RegExp(escapeHTML(query), 'gi'),
+                        (match) => `<strong class="bg-yellow-200 text-black">${match}</strong>`
+                    );
+                    resultEl.innerHTML = `
+                        <span class="block text-sm font-medium text-blue-600">${formatDateKey(result.dateKey)}</span>
+                        <p class="text-gray-700 ${result.task.completed ? 'line-through' : ''}">${highlightedText}</p>
+                    `;
+                    resultEl.addEventListener('click', () => goToDate(result.dateKey));
+                    searchResultsContainer.appendChild(resultEl);
+                });
+            }
+            function goToDate(dateKey) {
+                const [year, month, day] = dateKey.split('-').map(Number);
+                currentDate = new Date(year, month, day);
+                selectedDateKey = dateKey;
+                render(); // Renderiza la vista actual
+                updateDetailsPanel(dateKey); // Muestra los detalles
+                searchModal.classList.add('hidden');
+            }
+
+            // --- LÓGICA EXPORTAR/IMPORTAR (Sin cambios, excepto 'render') ---
+            function exportData() {
+                try {
+                    const settings = localStorage.getItem(DB_SETTINGS_KEY) || JSON.stringify(defaultSettings);
+                    const days = localStorage.getItem(DB_KEY) || JSON.stringify({});
+                    const backupData = { settings: JSON.parse(settings), days: JSON.parse(days) };
+                    const dataStr = JSON.stringify(backupData, null, 2);
+                    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                    const url = URL.createObjectURL(dataBlob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `calendario_backup_${new Date().toISOString().split('T')[0]}.json`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    importStatusMsg.textContent = '¡Datos exportados!';
+                    setTimeout(() => importStatusMsg.textContent = '', 3000);
+                } catch (error) {
+                    console.error("Error al exportar datos:", error);
+                    importStatusMsg.textContent = 'Error al exportar.';
+                }
+            }
+            function importData(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const backupData = JSON.parse(e.target.result);
+                        if (backupData.settings && backupData.days) {
+                            localStorage.setItem(DB_SETTINGS_KEY, JSON.stringify(backupData.settings));
+                            localStorage.setItem(DB_KEY, JSON.stringify(backupData.days));
+                            loadColorSettings();
+                            loadDayDatabase();
+                            render(); // Vuelve a renderizar la vista actual
+                            dayDetailsEl.classList.add('hidden');
+                            initialMessageEl.classList.remove('hidden');
+                            selectedDateKey = null;
+                            importStatusMsg.textContent = '¡Datos importados con éxito!';
+                        } else {
+                            throw new Error("El archivo no tiene el formato correcto.");
+                        }
+                    } catch (error) {
+                        console.error("Error al importar datos:", error);
+                        importStatusMsg.textContent = 'Error al importar. Archivo no válido.';
+                    } finally {
+                        importDataInput.value = '';
+                        setTimeout(() => importStatusMsg.textContent = '', 3000);
+                    }
+                };
+                reader.readAsText(file);
+            }
+
+            // --- LÓGICA DE AJUSTES (Sin cambios, excepto 'render' y título) ---
+            function applyColorSettings(settings) {
+                const root = document.documentElement;
+                root.style.setProperty('--color-day-bg', settings.dayBg);
+                root.style.setProperty('--color-day-text', settings.dayText);
+                root.style.setProperty('--color-today-bg', settings.todayBg);
+                root.style.setProperty('--color-selected-bg', settings.selectedBg);
+                root.style.setProperty('--color-audio-bg', settings.audioBg);
+                root.style.setProperty('--color-button-bg', settings.buttonBg);
+                root.style.setProperty('--color-button-text', settings.buttonText);
+                root.style.setProperty('--color-today-border', settings.todayBorder || settings.todayBg);
+                root.style.setProperty('--color-selected-border', settings.selectedBorder || settings.selectedBg);
+                root.style.setProperty('--color-audio-border', settings.audioBorder || settings.audioBg);
+                mainCalendarTitleEl.textContent = settings.calendarTitle;
+            }
+            function loadColorSettings() {
+                const settingsString = localStorage.getItem(DB_SETTINGS_KEY);
+                let settings = defaultSettings;
+                if (settingsString) {
+                    settings = Object.assign({}, defaultSettings, JSON.parse(settingsString));
+                }
+                applyColorSettings(settings);
+                settingsCalendarTitleEl.value = settings.calendarTitle;
+                colorInputs.dayBg.value = settings.dayBg;
+                colorInputs.dayText.value = settings.dayText;
+                colorInputs.todayBg.value = settings.todayBg;
+                colorInputs.selectedBg.value = settings.selectedBg;
+                colorInputs.audioBg.value = settings.audioBg;
+                colorInputs.buttonBg.value = settings.buttonBg;
+                colorInputs.buttonText.value = settings.buttonText;
+            }
+            function saveColorSettings() {
+                const settings = {
+                    calendarTitle: settingsCalendarTitleEl.value || defaultSettings.calendarTitle,
+                    dayBg: colorInputs.dayBg.value,
+                    dayText: colorInputs.dayText.value,
+                    todayBg: colorInputs.todayBg.value,
+                    selectedBg: colorInputs.selectedBg.value,
+                    audioBg: colorInputs.audioBg.value,
+                    buttonBg: colorInputs.buttonBg.value,
+                    buttonText: colorInputs.buttonText.value,
+                    todayBorder: defaultSettings.todayBorder,
+                    selectedBorder: defaultSettings.selectedBorder,
+                    audioBorder: defaultSettings.audioBorder,
+                };
+                localStorage.setItem(DB_SETTINGS_KEY, JSON.stringify(settings));
+                applyColorSettings(settings);
+                settingsModal.classList.add('hidden');
+                render(); // Vuelve a renderizar por si los colores de los botones cambiaron
+            }
+            function resetColorSettings() {
+                localStorage.removeItem(DB_SETTINGS_KEY);
+                applyColorSettings(defaultSettings);
+                loadColorSettings();
+                settingsModal.classList.add('hidden');
+                render(); // Vuelve a renderizar
+            }
+ 
+            // --- FUNCIÓN UTILITARIA (Sin cambios) ---
+            function escapeHTML(str) {
+                if (!str) return '';
+                return str.replace(/[&<>"']/g, function(m) {
+                    return {
+                        '&': '&amp;',
+                        '<': '&lt;',
+                        '>': '&gt;',
+                        '"': '&quot;',
+                        "'": '&#39;'
+                    }[m];
+                });
+            }
+        });
+    </script>
+
+</body>
+</html>
+
