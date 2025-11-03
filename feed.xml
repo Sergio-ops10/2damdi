@@ -3,7 +3,7 @@
     <title>2damdi</title>
     <link href="https://sergio-ops10.github.io/2damdi/feed.xml" rel="self" />
     <link href="https://sergio-ops10.github.io/2damdi" />
-    <updated>2025-11-03T19:45:00+01:00</updated>
+    <updated>2025-11-03T19:47:41+01:00</updated>
     <author>
         <name>Sergio López Albuixech</name>
     </author>
@@ -16,15 +16,18 @@
         </author>
         <link href="https://sergio-ops10.github.io/2damdi/documentacion-calendario-con-reproductor-de-audio.html"/>
         <id>https://sergio-ops10.github.io/2damdi/documentacion-calendario-con-reproductor-de-audio.html</id>
+        <media:content url="https://sergio-ops10.github.io/2damdi/media/posts/3/Captura-de-pantalla-2025-11-03-194724.png" medium="image" />
 
         <updated>2025-11-03T19:45:00+01:00</updated>
             <summary>
                 <![CDATA[
+                        <img src="https://sergio-ops10.github.io/2damdi/media/posts/3/Captura-de-pantalla-2025-11-03-194724.png" alt="" />
                     Aqui muestro las siguientes indicaciones que le he ido dando a gemini&hellip;
                 ]]>
             </summary>
         <content type="html">
             <![CDATA[
+                    <p><img src="https://sergio-ops10.github.io/2damdi/media/posts/3/Captura-de-pantalla-2025-11-03-194724.png" class="type:primaryImage" alt="" /></p>
                 <h2>Aqui muestro las siguientes indicaciones que le he ido dando a gemini para hacer la app (caldendario con reproductor de audio)</h2>
 <p class="query-text-line ng-star-inserted align-center">1.Actua como un desarrollador con experiencia de varios años en el desarrollo de aplicaciones web.Hazme con html css y javascript vanilla (Todo en una sola pagina), una aplicacion que haga lo siguiente: Realizar un reproductor de audios locales con calendario.</p>
 <p class="query-text-line ng-star-inserted align-center">Los audios estarán en archivos locales.</p>
