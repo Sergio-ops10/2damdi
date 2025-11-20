@@ -3,7 +3,7 @@
     <title>2damdi</title>
     <link href="https://sergio-ops10.github.io/2damdi/feed.xml" rel="self" />
     <link href="https://sergio-ops10.github.io/2damdi" />
-    <updated>2025-11-20T09:58:03+01:00</updated>
+    <updated>2025-11-20T10:00:42+01:00</updated>
     <author>
         <name>Sergio López Albuixech</name>
     </author>
@@ -16,15 +16,18 @@
         </author>
         <link href="https://sergio-ops10.github.io/2damdi/docuentacion-guia-de-coches.html"/>
         <id>https://sergio-ops10.github.io/2damdi/docuentacion-guia-de-coches.html</id>
+        <media:content url="https://sergio-ops10.github.io/2damdi/media/posts/4/Captura-de-pantalla-2025-11-20-100029.png" medium="image" />
 
         <updated>2025-11-20T09:45:27+01:00</updated>
             <summary>
                 <![CDATA[
+                        <img src="https://sergio-ops10.github.io/2damdi/media/posts/4/Captura-de-pantalla-2025-11-20-100029.png" alt="" />
                     Aqui muestro las siguientes indicaciones que le he ido dando a gemini&hellip;
                 ]]>
             </summary>
         <content type="html">
             <![CDATA[
+                    <p><img src="https://sergio-ops10.github.io/2damdi/media/posts/4/Captura-de-pantalla-2025-11-20-100029.png" class="type:primaryImage" alt="" /></p>
                 <h2>Aqui muestro las siguientes indicaciones que le he ido dando a gemini para hacer la app (Guia de Coches).</h2>
 <p> </p>
 <p>Actua como un desarrollador profesional de aplicaciones, quiero que me hagas una aplicacion html, css y javascript en una sola pagina, de una guia de coches reales, con fotos e informacion de cada coche, quiero que tenga un apartado ajustes donde pueda cambiar los colores de la aplicacion, un buscador para buscar los coches directamente, una hamburguesa para filtrar los coches por marca, color, tipo</p>
