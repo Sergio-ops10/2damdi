@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guía de Coches Pro v4.0 - Light & Dark Mode</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class', // Habilitar modo oscuro por clase
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        'primary': 'var(--primary-color)',
+                        'secondary': 'var(--secondary-color)',
+                        'text-base': 'var(--text-color)',
+                        'text-muted': 'var(--text-muted)',
+                        'card-bg': 'var(--card-color)',
+                        'border-base': 'var(--border-color)',
+                        'input-bg': 'var(--input-bg)',
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.3s ease-out forwards',
+                        'slide-in': 'slideIn 0.3s ease-out forwards',
+                    },
+                    keyframes: {
+                        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+                        slideIn: { '0%': { transform: 'translateX(20px)', opacity: '0' }, '100%': { transform: 'translateX(0)', opacity: '1' } }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        
+        :root {
+            /* Definición de variables por defecto (Modo Oscuro) */
+            --primary-color: #3b82f6;
+            --secondary-color: #0f172a; /* Fondo Principal Oscuro */
+            --card-color: #1e293b;      /* Fondo Tarjeta Oscuro */
+            --text-color: #f8fafc;      /* Texto Principal Claro */
+            --text-muted: #94a3b8;      /* Texto Secundario Gris */
+            --border-color: #334155;    /* Bordes Oscuros */
+            --input-bg: #020617;        /* Fondo Inputs Oscuro */
+        }
+
+        /* Clase para Modo Claro */
+        .light-mode {
+            --secondary-color: #f1f5f9; /* Fondo Principal Claro */
+            --card-color: #ffffff;      /* Fondo Tarjeta Blanco */
+            --text-color: #0f172a;      /* Texto Principal Oscuro */
+            --text-muted: #64748b;      /* Texto Secundario Gris Medio */
+            --border-color: #e2e8f0;    /* Bordes Claros */
+            --input-bg: #f8fafc;        /* Fondo Inputs Claro */
+        }
+
+        .bg-primary { background-color: var(--primary-color); }
+        .text-primary { color: var(--primary-color); }
+        .bg-secondary { background-color: var(--secondary-color); }
+        .bg-card { background-color: var(--card-color); }
+        .border-base { border-color: var(--border-color); }
+        
+        /* Scrollbar adaptable */
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: var(--secondary-color); }
+        ::-webkit-scrollbar-thumb { background-color: var(--primary-color); border-radius: 5px; border: 2px solid var(--secondary-color); }
+        
+        body { overflow-x: hidden; }
+        
+        /* Filas de tabla alternas adaptables */
+        .spec-row:nth-child(odd) { background-color: rgba(125, 125, 125, 0.1); }
+        
+        /* Select icon fix for colors */
+        select {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            -webkit-appearance: none; appearance: none;
+        }
+        
+        .view-hidden { display: none !important; }
+    </style>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-secondary text-text-base transition-colors duration-300 font-sans min-h-screen flex flex-col">
+
+    <!-- Datos -->
+    <script>
+        const CAR_DATA = [
+            { id: 1, name: 'Toyota Supra GR', brand: 'Toyota', color: 'Rojo', type: 'Deportivo', year: 2021, hp: 387, price: 55000, desc: 'Un renacimiento moderno con alma japonesa y corazón alemán. Su chasis rígido y su bajo centro de gravedad lo convierten en una máquina de precisión.', img: 'https://octane.rent/wp-content/uploads/2023/03/toyota-gr-supra-red-3-600x400.webp', specs: { acc: '4.3s', top: '250 km/h', cons: '7.5 L/100km', trans: 'Auto 8 Vel', drive: 'Trasera (RWD)' } },
+            { id: 2, name: 'Ford Mustang GT', brand: 'Ford', color: 'Azul', type: 'Muscle Car', year: 2023, hp: 456, price: 42000, desc: 'El muscle car más vendido del mundo. Su motor V8 Coyote atmosférico ofrece una banda sonora inigualable y potencia bruta americana.', img: 'https://www.frworldcars.com/frworldcars/resources/source/Vehiculos5/FordMustangazulGT/ford%20mustang%20nuevo%202019%20precio%20espa%C3%B1a%20km0%20oferta%20ocasion%20descuento%20oficial%20concesionario%20de%20coches%20americanos%20garantia%20nacional.jpg', specs: { acc: '4.6s', top: '250 km/h', cons: '11.8 L/100km', trans: 'Manual 6 Vel', drive: 'Trasera (RWD)' } },
+            { id: 3, name: 'Porsche 911 Carrera S', brand: 'Porsche', color: 'Amarillo', type: 'Deportivo', year: 2024, hp: 456, price: 102000, desc: 'La referencia absoluta. Motor trasero bóxer biturbo, diseño icónico y una ingeniería que roza la perfección técnica.', img: 'https://pugachev.miami/wp-content/uploads/2023/09/porche-911-yellow-2022-1-705x444.jpg', specs: { acc: '3.5s', top: '308 km/h', cons: '10.5 L/100km', trans: 'PDK 8 Vel', drive: 'Trasera (RWD)' } },
+            { id: 4, name: 'Tesla Model 3 Perf.', brand: 'Tesla', color: 'Blanco', type: 'Eléctrico', year: 2024, hp: 505, price: 55000, desc: 'Sedán eléctrico de alto rendimiento. Aceleración de supercar en un paquete familiar con la mejor tecnología de infoentretenimiento.', img: 'https://cdn.motor1.com/images/mgl/jzjBk/s1/tesla-model-3-awd-long-range-2021-prueba.jpg', specs: { acc: '3.3s', top: '261 km/h', cons: '16.5 kWh/100km', trans: 'Directa', drive: 'Total (AWD)' } },
+            { id: 5, name: 'Land Rover Defender', brand: 'Land Rover', color: 'Verde', type: 'SUV', year: 2022, hp: 300, price: 78000, desc: 'El todoterreno reinventado. Capacidad off-road legendaria combinada con un lujo y confort en carretera sorprendente.', img: 'https://i.blogs.es/d3c757/04_def_23-5my_75th_edition_110_140922/450_1000.jpeg', specs: { acc: '7.4s', top: '191 km/h', cons: '9.6 L/100km', trans: 'Auto 8 Vel', drive: 'Total (4WD)' } },
+            { id: 6, name: 'Nissan GT-R R35', brand: 'Nissan', color: 'Gris', type: 'Deportivo', year: 2020, hp: 573, price: 113000, desc: 'Godzilla. Un icono de la ingeniería japonesa capaz de humillar a coches que cuestan el triple gracias a su tracción total inteligente.', img: 'https://es.nissanusa.com/content/dam/Nissan/us/vehicles/gtr/2024/site-simp/gallery/exterior/mosaic/2024-nissan-gt-r-nismo-aerodynamic-design.jpg', specs: { acc: '2.8s', top: '315 km/h', cons: '13.5 L/100km', trans: 'Doble Embrague 6', drive: 'Total (AWD)' } },
+            { id: 7, name: 'Mercedes-Benz G 63', brand: 'Mercedes-Benz', color: 'Negro', type: 'SUV', year: 2024, hp: 585, price: 140000, desc: 'Un búnker sobre ruedas. Diseño cuadrado inconfundible, lujo extremo y un motor V8 biturbo que desafía la aerodinámica.', img: 'https://images1.autocasion.com/actualidad/wp-content/uploads/2023/07/1152841.jpg', specs: { acc: '4.5s', top: '220 km/h', cons: '16.4 L/100km', trans: 'AMG Speedshift 9', drive: 'Total (4WD)' } },
+            { id: 8, name: 'Audi R8 V10', brand: 'Audi', color: 'Plata', type: 'Deportivo', year: 2023, hp: 610, price: 195000, desc: 'El último de su especie. Motor V10 atmosférico central que gira a 8700 rpm. Un superdeportivo utilizable a diario.', img: 'https://www.topgear.com/sites/default/files/images/news-article/2019/11/6c41c411a92ea50b502c8eef1d49cad0/a1914471_large.jpg', specs: { acc: '3.1s', top: '331 km/h', cons: '12.9 L/100km', trans: 'S-Tronic 7', drive: 'Total (Quattro)' } },
+            { id: 9, name: 'Mazda MX-5 Miata', brand: 'Mazda', color: 'Blanco', type: 'Roadster', year: 2023, hp: 184, price: 28000, desc: 'La esencia del placer de conducir. Ligero, manual y tracción trasera. No es el más rápido, pero sí el más divertido.', img: 'https://i.ytimg.com/vi/iyAyD0-1DSU/maxresdefault.jpg', specs: { acc: '6.5s', top: '219 km/h', cons: '6.9 L/100km', trans: 'Manual 6 Vel', drive: 'Trasera (RWD)' } },
+            { id: 10, name: 'Corvette C8', brand: 'Chevrolet', color: 'Rojo', type: 'Superdeportivo', year: 2022, hp: 502, price: 65000, desc: 'La revolución americana con motor central. Ofrece prestaciones de Ferrari a precio de berlina alemana.', img: 'https://cdn.motor1.com/images/mgl/K9EGl/s1/4x3/chevrolet-corvette-stingray-2020.webp', specs: { acc: '2.9s', top: '312 km/h', cons: '12.0 L/100km', trans: 'Doble Embrague 8', drive: 'Trasera (RWD)' } },
+            { id: 11, name: 'Volvo XC90', brand: 'Volvo', color: 'Gris', type: 'SUV', year: 2024, hp: 461, price: 75000, desc: 'Lujo escandinavo y seguridad líder. Híbrido enchufable con 7 plazas reales y un diseño interior minimalista.', img: 'https://fotos.quecochemecompro.com/volvo-xc90-hibrido/volvo-xc90-hibrido-trasero.jpg?size=750x400', specs: { acc: '5.4s', top: '180 km/h', cons: '1.2 L/100km', trans: 'Auto 8 Vel', drive: 'Total (AWD)' } },
+            { id: 12, name: 'Honda Civic Type R', brand: 'Honda', color: 'Blanco', type: 'Hatchback', year: 2023, hp: 319, price: 44000, desc: 'El rey de los tracción delantera. Estética radical, chasis afilado y una de las mejores cajas manuales del mundo.', img: 'https://e01-elmundo.uecdn.es/assets/multimedia/imagenes/2022/12/11/16707779019313.jpg', specs: { acc: '5.4s', top: '275 km/h', cons: '8.2 L/100km', trans: 'Manual 6 Vel', drive: 'Delantera (FWD)' } },
+            { id: 13, name: 'Ferrari F8 Tributo', brand: 'Ferrari', color: 'Amarillo', type: 'Superdeportivo', year: 2021, hp: 720, price: 280000, desc: 'El V8 más potente de la historia de Ferrari (sin hibridación). Diseño aerodinámico esculpido por el viento.', img: 'https://hips.hearstapps.com/hmg-prod/images/ferrari-f8-tributo-02-1568015707.jpg?crop=1xw:0.7958725406330197xh;center,top&resize=1200:*', specs: { acc: '2.9s', top: '340 km/h', cons: '12.5 L/100km', trans: 'F1 DCT 7 Vel', drive: 'Trasera (RWD)' } },
+            { id: 14, name: 'Subaru WRX STI', brand: 'Subaru', color: 'Azul', type: 'Sedán', year: 2020, hp: 314, price: 38000, desc: 'ADN de Rally para la calle. Tracción total simétrica, motor bóxer con su sonido característico y alerón gigante.', img: 'https://objetos.estaticos-marca.com/assets/multimedia/imagenes/2019/04/02/15542020725437.jpg', specs: { acc: '5.2s', top: '255 km/h', cons: '10.9 L/100km', trans: 'Manual 6 Vel', drive: 'Total (AWD)' } },
+            { id: 15, name: 'Volkswagen Golf R', brand: 'Volkswagen', color: 'Negro', type: 'Hatchback', year: 2024, hp: 319, price: 46000, desc: 'El hot hatch definitivo para todo uso. Rápido en circuito, cómodo en viaje y práctico en ciudad. Modo Drift incluido.', img: 'https://www.mcondevolkswagen.com/mcondevolkswagen/assets/img/footers/Volkswagen-Golf-R-2.jpg', specs: { acc: '4.7s', top: '250 km/h', cons: '7.8 L/100km', trans: 'DSG 7 Vel', drive: 'Total (4Motion)' } },
+        ];
+    </script>
+
+    <!-- Header Global -->
+    <header class="bg-card shadow-xl sticky top-0 z-50 border-b border-base backdrop-blur-md bg-opacity-95 transition-colors duration-300">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex items-center justify-between">
+                <!-- Logo -->
+                <div class="flex items-center gap-2 cursor-pointer group" onclick="goBackToList()">
+                    <div class="bg-primary p-2 rounded-lg group-hover:scale-110 transition-transform shadow-lg">
+                        <i data-lucide="car" class="text-white w-6 h-6"></i>
+                    </div>
+                    <h1 class="text-xl md:text-2xl font-bold text-text-base tracking-tight">Guía<span class="text-primary">Coches</span>Pro</h1>
+                </div>
+                
+                <!-- Controles -->
+                <div id="header-controls" class="flex space-x-2 items-center transition-opacity duration-300">
+                    <!-- Botón Tema -->
+                    <button onclick="toggleThemeMode()" id="theme-toggle-btn" class="p-2.5 rounded-xl bg-input-bg border border-base hover:border-primary text-text-base transition-all shadow-md" title="Cambiar Tema">
+                        <i data-lucide="moon" class="w-5 h-5" id="theme-icon"></i>
+                    </button>
+
+                    <button id="fav-filter-btn" onclick="toggleFavFilter()" class="p-2.5 rounded-xl bg-input-bg border border-base hover:border-red-400 hover:text-red-400 text-text-base transition-all shadow-md relative" title="Ver Favoritos">
+                        <i data-lucide="heart" class="w-5 h-5"></i>
+                        <span id="fav-count-badge" class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full hidden">0</span>
+                    </button>
+                    
+                    <button onclick="toggleFilterSidebar()" class="p-2.5 rounded-xl bg-primary hover:bg-blue-600 text-white transition-all shadow-lg shadow-blue-900/30 flex items-center gap-2 font-medium" title="Filtros">
+                        <i data-lucide="sliders-horizontal" class="w-5 h-5"></i>
+                        <span class="hidden lg:inline text-sm">Filtros</span>
+                    </button>
+                    
+                    <button onclick="toggleSettingsModal()" class="hidden sm:block p-2.5 rounded-xl bg-input-bg border border-base hover:border-primary text-text-base transition-all shadow-md" title="Ajustes">
+                        <i data-lucide="settings" class="w-5 h-5"></i>
+                    </button>
+                </div>
+
+                <!-- Botón Cerrar Detalle -->
+                <div id="detail-header-controls" class="hidden">
+                    <button onclick="goBackToList()" class="px-4 py-2 rounded-lg bg-input-bg border border-base hover:bg-primary hover:text-white text-text-base flex items-center gap-2 transition-all font-medium shadow-md">
+                        <i data-lucide="arrow-left" class="w-4 h-4"></i> Volver
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <!-- ================= VISTA 1: LISTA DE COCHES ================= -->
+    <div id="main-view" class="flex-grow flex flex-col transition-opacity duration-300">
+        <!-- Sub-Header Buscador -->
+        <div class="bg-card border-b border-base py-4 shadow-md transition-colors duration-300">
+            <div class="container mx-auto px-4 flex flex-col sm:flex-row gap-4 justify-between items-center">
+                <div class="w-full max-w-md relative group">
+                    <input type="text" id="search-input" placeholder="Busca por marca, modelo o tipo..."
+                        class="w-full py-3 pl-11 pr-4 rounded-xl bg-input-bg border border-base text-text-base placeholder-text-muted focus:ring-2 focus:ring-primary focus:border-primary transition-all shadow-inner"
+                        oninput="applyFilters()">
+                    <i data-lucide="search" class="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-text-muted w-5 h-5 group-focus-within:text-primary transition-colors"></i>
+                </div>
+                <div class="w-full sm:w-auto flex items-center gap-2 bg-input-bg p-1.5 rounded-xl border border-base shadow-sm">
+                    <div class="pl-2 text-text-muted"><i data-lucide="arrow-up-down" class="w-4 h-4"></i></div>
+                    <select id="sort-select" onchange="applyFilters()" class="bg-transparent text-sm text-text-base p-2 pr-8 focus:outline-none cursor-pointer w-full sm:w-48 font-medium">
+                        <option value="default" class="bg-card text-text-base">Relevancia</option>
+                        <option value="price-asc" class="bg-card text-text-base">Precio: Menor a Mayor</option>
+                        <option value="price-desc" class="bg-card text-text-base">Precio: Mayor a Menor</option>
+                        <option value="hp-desc" class="bg-card text-text-base">Potencia: Más potente</option>
+                        <option value="year-desc" class="bg-card text-text-base">Año: Más nuevo</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <main class="container mx-auto p-4 flex-grow">
+            <div class="flex justify-between items-end mb-6 border-b border-base pb-3">
+                <h2 class="text-2xl font-bold text-text-base" id="results-header">Catálogo</h2>
+                <span class="text-sm font-medium text-text-muted" id="results-count">Cargando...</span>
+            </div>
+            <div id="car-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-24"></div>
+            
+            <div id="no-results" class="hidden flex flex-col items-center justify-center mt-20 text-center">
+                <div class="bg-card p-6 rounded-full mb-4 border border-base"><i data-lucide="search-x" class="w-12 h-12 text-text-muted"></i></div>
+                <h3 class="text-xl font-bold text-text-base mb-2">No hay resultados</h3>
+                <button onclick="clearFilters()" class="mt-4 px-6 py-2.5 bg-primary text-white font-semibold rounded-lg hover:bg-blue-600 transition shadow-lg">Limpiar filtros</button>
+            </div>
+        </main>
+        
+        <!-- Barra Comparador (Sticky Bottom) -->
+        <div id="comparison-bar" class="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-lg border-t border-base p-4 z-40 flex flex-col sm:flex-row justify-between items-center shadow-[0_-4px_20px_rgba(0,0,0,0.1)] transition-all duration-300 transform translate-y-full">
+            <div class="flex items-center gap-4 mb-3 sm:mb-0 w-full sm:w-auto">
+                <span class="text-primary font-bold text-xs uppercase tracking-widest hidden sm:block">Comparador</span>
+                <div id="comparison-slots" class="flex gap-3 flex-1 sm:flex-none">
+                    <div id="slot-1" class="flex-1 sm:w-40 p-2.5 bg-input-bg rounded-lg border border-dashed border-base text-xs text-center truncate text-text-muted flex items-center justify-center h-10 font-medium">Vacío</div>
+                    <div id="slot-2" class="flex-1 sm:w-40 p-2.5 bg-input-bg rounded-lg border border-dashed border-base text-xs text-center truncate text-text-muted flex items-center justify-center h-10 font-medium">Vacío</div>
+                </div>
+            </div>
+            <div class="flex space-x-3 w-full sm:w-auto">
+                <button id="compare-action-btn" onclick="openComparisonModal()" disabled class="flex-1 sm:flex-none px-6 py-2.5 rounded-lg bg-primary text-white font-bold text-sm transition-all shadow-lg hover:shadow-blue-500/40 disabled:bg-input-bg disabled:text-text-muted disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 disabled:shadow-none">
+                    <i data-lucide="columns-3" class="w-4 h-4"></i> Comparar
+                </button>
+                <button onclick="clearComparison()" class="px-3 py-2.5 rounded-lg bg-input-bg hover:bg-red-600 hover:text-white text-text-base transition-all border border-base hover:border-red-500 shadow-md" title="Limpiar selección">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= VISTA 2: FICHA DETALLADA (NUEVA PAGINA) ================= -->
+    <div id="detail-view" class="flex-grow flex-col hidden bg-secondary animate-fade-in transition-colors duration-300">
+        
+        <!-- Hero Section -->
+        <div class="relative h-[45vh] md:h-[55vh] w-full overflow-hidden bg-black">
+            <img id="page-detail-img" src="" class="w-full h-full object-cover opacity-80" alt="Car Hero">
+            <div class="absolute inset-0 bg-gradient-to-t from-secondary via-transparent to-transparent"></div>
+            
+            <div class="absolute bottom-0 left-0 right-0 container mx-auto p-6 md:p-10 pb-12">
+                <div class="flex flex-col md:flex-row justify-between items-end gap-6">
+                    <div>
+                        <span id="page-detail-brand" class="px-3 py-1 bg-primary text-white text-xs font-bold uppercase rounded mb-3 inline-block shadow-lg tracking-wider">Marca</span>
+                        <h1 id="page-detail-name" class="text-4xl md:text-6xl font-extrabold text-text-base mb-3 drop-shadow-2xl tracking-tight" style="color: white !important; text-shadow: 0 2px 10px rgba(0,0,0,0.5);">Modelo</h1>
+                        <div class="flex items-center gap-6 text-gray-200 text-sm md:text-base font-medium">
+                            <span id="page-detail-type" class="flex items-center gap-2 bg-black/40 px-3 py-1 rounded-full backdrop-blur-md border border-white/20"><i data-lucide="activity" class="w-4 h-4 text-primary"></i> Tipo</span>
+                            <span id="page-detail-year" class="flex items-center gap-2 bg-black/40 px-3 py-1 rounded-full backdrop-blur-md border border-white/20"><i data-lucide="calendar" class="w-4 h-4 text-primary"></i> 2024</span>
+                        </div>
+                    </div>
+                    <div class="text-right bg-black/40 p-4 rounded-xl backdrop-blur-md border border-white/20">
+                        <div class="text-xs text-gray-300 uppercase font-bold mb-1 tracking-widest">Precio Estimado</div>
+                        <div id="page-detail-price" class="text-3xl md:text-5xl font-bold text-white">$0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contenido Principal -->
+        <div class="container mx-auto p-6 md:p-8 -mt-8 relative z-10">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
+                <!-- Columna Izquierda -->
+                <div class="lg:col-span-2 space-y-8">
+                    <!-- Descripción -->
+                    <div class="bg-card rounded-2xl p-6 md:p-8 shadow-xl border border-base transition-colors">
+                        <h3 class="text-xl font-bold text-text-base mb-4 flex items-center gap-2">
+                            <i data-lucide="info" class="w-5 h-5 text-primary"></i> Sobre este vehículo
+                        </h3>
+                        <p id="page-detail-desc" class="text-text-muted leading-relaxed text-lg font-light">Descripción...</p>
+                    </div>
+
+                    <!-- Tabla de Especificaciones -->
+                    <div class="bg-card rounded-2xl overflow-hidden shadow-xl border border-base transition-colors">
+                        <div class="p-5 bg-input-bg border-b border-base">
+                            <h3 class="text-lg font-bold text-text-base flex items-center gap-2"><i data-lucide="gauge" class="w-5 h-5 text-primary"></i> Ficha Técnica</h3>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2">
+                            <!-- Columna 1 -->
+                            <div class="p-4 border-b sm:border-b-0 sm:border-r border-base space-y-4">
+                                <div class="flex justify-between items-center spec-row p-3 rounded transition-colors">
+                                    <span class="text-text-muted font-medium">Potencia</span>
+                                    <span id="spec-hp" class="text-text-base font-bold text-lg">0 CV</span>
+                                </div>
+                                <div class="flex justify-between items-center spec-row p-3 rounded transition-colors">
+                                    <span class="text-text-muted font-medium">0-100 km/h</span>
+                                    <span id="spec-acc" class="text-text-base font-bold text-lg">-</span>
+                                </div>
+                                <div class="flex justify-between items-center spec-row p-3 rounded transition-colors">
+                                    <span class="text-text-muted font-medium">Velocidad Máx</span>
+                                    <span id="spec-top" class="text-text-base font-bold text-lg">-</span>
+                                </div>
+                            </div>
+                            <!-- Columna 2 -->
+                            <div class="p-4 space-y-4">
+                                <div class="flex justify-between items-center spec-row p-3 rounded transition-colors">
+                                    <span class="text-text-muted font-medium">Consumo</span>
+                                    <span id="spec-cons" class="text-text-base font-bold text-lg">-</span>
+                                </div>
+                                <div class="flex justify-between items-center spec-row p-3 rounded transition-colors">
+                                    <span class="text-text-muted font-medium">Tracción</span>
+                                    <span id="spec-drive" class="text-text-base font-bold text-lg">-</span>
+                                </div>
+                                <div class="flex justify-between items-center spec-row p-3 rounded transition-colors">
+                                    <span class="text-text-muted font-medium">Transmisión</span>
+                                    <span id="spec-trans" class="text-text-base font-bold text-lg">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Sección Coches Similares -->
+                    <div>
+                        <h3 class="text-xl font-bold text-text-base mb-4 mt-2">También te podría interesar</h3>
+                        <div id="similar-cars-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                            <!-- Se llena dinámicamente -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Columna Derecha: Sticky -->
+                <div class="lg:col-span-1">
+                    <div class="sticky top-28 space-y-6">
+                        <div class="bg-card rounded-2xl p-6 shadow-xl border border-base transition-colors">
+                            <div class="mb-6 flex items-center justify-between bg-input-bg p-3 rounded-lg border border-base">
+                                <span class="text-text-muted font-medium">Color disponible</span>
+                                <div class="flex items-center gap-2">
+                                    <span id="page-detail-color-dot" class="w-5 h-5 rounded-full border-2 border-base shadow-sm"></span>
+                                    <span id="page-detail-color" class="text-text-base font-bold">Color</span>
+                                </div>
+                            </div>
+                            
+                            <div class="space-y-4">
+                                <button id="page-fav-btn" class="w-full py-3.5 rounded-xl border-2 border-base text-text-base font-bold hover:border-red-500 hover:text-red-500 hover:bg-red-500/10 transition-all flex items-center justify-center gap-2 group">
+                                    <i data-lucide="heart" class="w-5 h-5 group-hover:scale-110 transition-transform"></i> <span>Añadir a Favoritos</span>
+                                </button>
+                                <button id="page-compare-btn" class="w-full py-3.5 rounded-xl bg-primary text-white font-bold hover:bg-blue-600 transition-all shadow-lg shadow-blue-900/30 flex items-center justify-center gap-2 group hover:translate-y-[-2px]">
+                                    <i data-lucide="columns-3" class="w-5 h-5 group-hover:scale-110 transition-transform"></i> <span>Comparar</span>
+                                </button>
+                                <button onclick="goBackToList()" class="w-full py-3.5 rounded-xl bg-input-bg text-text-base font-semibold hover:bg-primary hover:text-white border border-base transition-all flex items-center justify-center gap-2">
+                                    <i data-lucide="arrow-left" class="w-4 h-4"></i> Volver al Catálogo
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Sidebar Filtros -->
+    <div id="filter-sidebar" class="fixed top-0 right-0 h-full w-80 bg-card shadow-2xl z-[60] transform translate-x-full transition-transform duration-300 flex flex-col border-l border-base">
+        <div class="p-6 border-b border-base flex justify-between items-center bg-input-bg">
+            <h2 class="text-xl font-bold text-text-base flex items-center gap-2"><i data-lucide="sliders-horizontal" class="w-5 h-5 text-primary"></i> Filtros</h2>
+            <button onclick="toggleFilterSidebar()" class="p-1.5 rounded-full hover:bg-primary transition text-text-muted hover:text-white"><i data-lucide="x" class="w-6 h-6"></i></button>
+        </div>
+        <div id="filter-options" class="p-6 space-y-8 overflow-y-auto flex-1 bg-card"></div>
+        <div class="p-6 border-t border-base bg-input-bg">
+            <button onclick="clearFilters()" class="w-full py-3 rounded-xl bg-card hover:bg-red-600 text-text-base hover:text-white font-bold transition-all shadow-lg flex items-center justify-center gap-2 border border-base hover:border-red-500">
+                <i data-lucide="trash-2" class="w-4 h-4"></i> Restablecer
+            </button>
+        </div>
+    </div>
+    
+    <!-- Modal Comparación -->
+    <div id="comparison-modal" class="fixed inset-0 bg-black/90 backdrop-blur-sm z-[100] hidden items-center justify-center p-4">
+        <div class="bg-card rounded-2xl w-full max-w-5xl shadow-2xl relative overflow-hidden flex flex-col max-h-[95vh] border border-base transition-colors">
+            <div class="p-6 border-b border-base flex justify-between items-center bg-input-bg">
+                <h2 class="text-2xl font-bold text-text-base flex items-center gap-2"><i data-lucide="scale" class="w-6 h-6 text-primary"></i> Comparativa</h2>
+                <button onclick="closeComparisonModal()" class="p-2 hover:bg-primary rounded-full transition-colors text-text-muted hover:text-white"><i data-lucide="x" class="w-6 h-6"></i></button>
+            </div>
+            <div class="overflow-y-auto p-4 lg:p-8 custom-scrollbar">
+                <div id="comparison-content" class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-8 text-sm">
+                    <div id="compare-car-1" class="space-y-3"></div>
+                    <div id="compare-labels" class="hidden lg:flex flex-col gap-3 py-2"></div>
+                    <div id="compare-car-2" class="space-y-3"></div>
+                </div>
+            </div>
+            <div class="p-4 border-t border-base bg-input-bg flex justify-end gap-3">
+                <button onclick="closeComparisonModal()" class="px-5 py-2.5 rounded-lg border border-base text-text-muted hover:text-white hover:bg-primary font-medium transition-colors">Cerrar</button>
+                <button onclick="clearComparison(); closeComparisonModal();" class="px-5 py-2.5 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-600 hover:text-white border border-red-500/50 font-medium transition-colors flex items-center gap-2"><i data-lucide="trash-2" class="w-4 h-4"></i> Limpiar todo</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Ajustes -->
+    <div id="settings-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[90] hidden items-center justify-center p-4">
+        <div class="bg-card rounded-2xl p-8 w-full max-w-md shadow-2xl relative border border-base transition-colors">
+            <button onclick="toggleSettingsModal()" class="absolute top-4 right-4 text-text-muted hover:text-text-base"><i data-lucide="x" class="w-6 h-6"></i></button>
+            <h2 class="text-2xl font-bold mb-6 text-text-base flex items-center gap-2"><i data-lucide="palette" class="w-6 h-6 text-primary"></i> Personalización</h2>
+            <div class="space-y-6">
+                <div>
+                    <label class="block text-sm font-bold mb-3 text-text-base">Color de Acento</label>
+                    <div class="flex gap-4 items-center bg-input-bg p-3 rounded-xl border border-base">
+                        <input type="color" id="primary-color-picker" value="#3b82f6" class="w-12 h-10 rounded cursor-pointer bg-transparent border-none" onchange="updateTheme()">
+                        <span class="text-xs text-text-muted uppercase tracking-widest font-semibold">Selecciona un color</span>
+                    </div>
+                </div>
+                
+                <div class="bg-primary/10 p-4 rounded-xl border border-primary/20">
+                    <p class="text-sm text-text-base flex gap-2 items-start">
+                        <i data-lucide="info" class="w-4 h-4 mt-0.5 text-primary"></i>
+                        El modo Claro/Oscuro se controla ahora desde el botón de la luna/sol en la barra superior.
+                    </p>
+                </div>
+
+                <button onclick="resetTheme()" class="w-full py-3 rounded-xl border border-base text-text-base hover:bg-input-bg transition-colors text-sm font-bold">Restablecer Valores</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast-container" class="fixed bottom-24 sm:bottom-10 left-1/2 -translate-x-1/2 z-[120] pointer-events-none"></div>
+
+    <script>
+        let comparisonCars = [];
+        let favoriteIds = JSON.parse(localStorage.getItem('carFavorites')) || [];
+        let showingFavoritesOnly = false;
+        let isLightMode = localStorage.getItem('carGuideLightMode') === 'true';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            generateFilterOptions();
+            updateFavoritesBadge();
+            
+            // Cargar estado inicial del tema
+            if(isLightMode) {
+                document.documentElement.classList.add('light-mode');
+                document.getElementById('theme-icon').setAttribute('data-lucide', 'sun');
+            }
+
+            loadTheme();
+            applyFilters();
+            
+            document.getElementById('filter-options').addEventListener('change', applyFilters);
+            lucide.createIcons(); // Refresh icons after setting initial state
+        });
+
+        // ================= THEME LOGIC =================
+        function toggleThemeMode() {
+            isLightMode = !isLightMode;
+            const html = document.documentElement;
+            const icon = document.getElementById('theme-icon');
+            
+            if(isLightMode) {
+                html.classList.add('light-mode');
+                icon.setAttribute('data-lucide', 'sun');
+                localStorage.setItem('carGuideLightMode', 'true');
+            } else {
+                html.classList.remove('light-mode');
+                icon.setAttribute('data-lucide', 'moon');
+                localStorage.setItem('carGuideLightMode', 'false');
+            }
+            lucide.createIcons();
+        }
+
+        // ================= SPA ROUTING SIMULATION =================
+        
+        function navigateToDetail(id) {
+            const car = CAR_DATA.find(c => c.id === id);
+            if(!car) return;
+
+            document.getElementById('page-detail-img').src = car.img;
+            document.getElementById('page-detail-brand').textContent = car.brand;
+            document.getElementById('page-detail-name').textContent = car.name;
+            document.getElementById('page-detail-type').innerHTML = `<i data-lucide="activity" class="w-4 h-4 text-primary"></i> ${car.type}`;
+            document.getElementById('page-detail-year').innerHTML = `<i data-lucide="calendar" class="w-4 h-4 text-primary"></i> ${car.year}`;
+            document.getElementById('page-detail-price').textContent = `$${car.price.toLocaleString('es-ES')}`;
+            document.getElementById('page-detail-desc').textContent = car.desc;
+            document.getElementById('page-detail-color').textContent = car.color;
+            document.getElementById('page-detail-color-dot').style.backgroundColor = getColorHex(car.color);
+            
+            document.getElementById('spec-hp').textContent = car.hp + ' CV';
+            document.getElementById('spec-acc').textContent = car.specs.acc;
+            document.getElementById('spec-top').textContent = car.specs.top;
+            document.getElementById('spec-cons').textContent = car.specs.cons;
+            document.getElementById('spec-trans').textContent = car.specs.trans;
+            document.getElementById('spec-drive').textContent = car.specs.drive;
+
+            updatePageDetailButtons(car.id);
+            
+            const favBtn = document.getElementById('page-fav-btn');
+            const compBtn = document.getElementById('page-compare-btn');
+            
+            const newFavBtn = favBtn.cloneNode(true);
+            const newCompBtn = compBtn.cloneNode(true);
+            favBtn.parentNode.replaceChild(newFavBtn, favBtn);
+            compBtn.parentNode.replaceChild(newCompBtn, compBtn);
+            
+            newFavBtn.addEventListener('click', () => { toggleFavorite(car.id); updatePageDetailButtons(car.id); });
+            newCompBtn.addEventListener('click', () => { toggleCarForComparison(car.id); updatePageDetailButtons(car.id); });
+
+            loadSimilarCars(car);
+
+            document.getElementById('main-view').classList.add('hidden');
+            document.getElementById('comparison-bar').classList.add('hidden'); 
+            document.getElementById('header-controls').classList.add('hidden'); 
+            
+            const detailView = document.getElementById('detail-view');
+            detailView.classList.remove('hidden');
+            document.getElementById('detail-header-controls').classList.remove('hidden');
+            
+            window.scrollTo(0,0);
+            lucide.createIcons();
+        }
+
+        function goBackToList() {
+            document.getElementById('detail-view').classList.add('hidden');
+            document.getElementById('detail-header-controls').classList.add('hidden');
+            
+            document.getElementById('main-view').classList.remove('hidden');
+            document.getElementById('header-controls').classList.remove('hidden');
+            
+            updateComparisonBar(); 
+            lucide.createIcons();
+        }
+
+        function updatePageDetailButtons(id) {
+            const isFav = favoriteIds.includes(id);
+            const isComp = comparisonCars.some(c => c.id === id);
+            
+            const favBtn = document.getElementById('page-fav-btn');
+            const compBtn = document.getElementById('page-compare-btn');
+
+            if(isFav) {
+                favBtn.classList.add('bg-red-500/10', 'border-red-500', 'text-red-500');
+                favBtn.classList.remove('border-base', 'text-text-base');
+                favBtn.innerHTML = `<i data-lucide="heart" class="w-5 h-5 fill-red-500 text-red-500"></i> <span>Guardado</span>`;
+            } else {
+                favBtn.classList.remove('bg-red-500/10', 'border-red-500', 'text-red-500');
+                favBtn.classList.add('border-base', 'text-text-base');
+                favBtn.innerHTML = `<i data-lucide="heart" class="w-5 h-5"></i> <span>Añadir a Favoritos</span>`;
+            }
+
+            if(isComp) {
+                compBtn.classList.replace('bg-primary', 'bg-red-600');
+                compBtn.classList.replace('hover:bg-blue-600', 'hover:bg-red-700');
+                compBtn.innerHTML = `<i data-lucide="minus" class="w-5 h-5"></i> <span>Quitar Comparación</span>`;
+            } else {
+                compBtn.classList.replace('bg-red-600', 'bg-primary');
+                compBtn.classList.replace('hover:bg-red-700', 'hover:bg-blue-600');
+                compBtn.innerHTML = `<i data-lucide="columns-3" class="w-5 h-5"></i> <span>Comparar</span>`;
+            }
+            lucide.createIcons();
+        }
+
+        function loadSimilarCars(currentCar) {
+            const grid = document.getElementById('similar-cars-grid');
+            grid.innerHTML = '';
+            
+            const similar = CAR_DATA.filter(c => (c.type === currentCar.type || c.brand === currentCar.brand) && c.id !== currentCar.id).slice(0, 2);
+            
+            if(similar.length === 0) {
+                grid.innerHTML = '<p class="text-text-muted italic p-4">No hay coches similares disponibles.</p>';
+                return;
+            }
+
+            similar.forEach(car => {
+                grid.innerHTML += `
+                    <div class="bg-card rounded-xl overflow-hidden shadow-lg border border-base group cursor-pointer hover:border-primary transition-all" onclick="navigateToDetail(${car.id})">
+                        <div class="h-32 overflow-hidden relative">
+                            <img src="${car.img}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                            <div class="absolute inset-0 bg-gradient-to-t from-secondary/80 to-transparent"></div>
+                        </div>
+                        <div class="p-4">
+                            <h4 class="font-bold text-text-base truncate text-lg">${car.name}</h4>
+                            <p class="text-sm text-text-muted font-medium mt-1">${car.year} · ${car.hp} CV</p>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+
+        // ================= CORE LOGIC (LIST RENDER) =================
+        function renderCars(cars) {
+            const container = document.getElementById('car-list');
+            const countLabel = document.getElementById('results-count');
+            container.innerHTML = '';
+            countLabel.textContent = `Mostrando ${cars.length} coche${cars.length !== 1 ? 's' : ''}`;
+
+            if (cars.length === 0) {
+                document.getElementById('no-results').classList.remove('hidden');
+                return;
+            } else {
+                document.getElementById('no-results').classList.add('hidden');
+            }
+
+            cars.forEach(car => {
+                const card = document.createElement('div');
+                const isSelected = comparisonCars.some(c => c.id === car.id);
+                const isFav = favoriteIds.includes(car.id);
+                const borderClass = isSelected ? 'border-primary ring-2 ring-primary ring-opacity-50' : 'border-base hover:border-primary';
+                
+                card.className = `group bg-card rounded-2xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-all duration-300 border ${borderClass} flex flex-col relative`;
+                
+                card.innerHTML = `
+                    <div class="h-52 overflow-hidden relative cursor-pointer" onclick="navigateToDetail(${car.id})">
+                        <img src="${car.img}" alt="${car.name}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" onerror="this.onerror=null; this.src='https://placehold.co/600x400/1f2937/f3f4f6?text=Sin+Imagen';">
+                        <div class="absolute inset-0 bg-gradient-to-t from-card-bg via-transparent to-transparent opacity-90"></div>
+                        <div class="absolute bottom-3 left-3 bg-primary/90 backdrop-blur text-white text-xs font-bold px-2.5 py-1 rounded-lg flex items-center gap-1 shadow-lg border border-white/10">
+                            <i data-lucide="zap" class="w-3 h-3"></i> ${car.hp} CV
+                        </div>
+                        
+                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <span class="bg-black/70 text-white px-5 py-2 rounded-full text-sm backdrop-blur-sm font-semibold hover:bg-primary transition-colors shadow-xl border border-white/20 pointer-events-auto">
+                                Ver Ficha
+                            </span>
+                        </div>
+                    </div>
+
+                    <button onclick="event.stopPropagation(); toggleFavorite(${car.id})" class="heart-btn absolute top-3 right-3 p-2.5 rounded-full bg-black/60 backdrop-blur-md hover:bg-black/80 border border-white/10 transition-all z-10 ${isFav ? 'active' : ''}">
+                        <i data-lucide="heart" class="w-5 h-5 text-white transition-colors ${isFav ? 'fill-red-500 stroke-red-500' : ''}"></i>
+                    </button>
+
+                    <div class="p-5 flex-grow flex flex-col">
+                        <div class="flex justify-between items-start mb-3 cursor-pointer" onclick="navigateToDetail(${car.id})">
+                            <div>
+                                <p class="text-xs text-primary font-bold uppercase tracking-wide mb-1">${car.brand}</p>
+                                <h3 class="text-xl font-bold text-text-base leading-tight group-hover:text-primary transition-colors">${car.name}</h3>
+                            </div>
+                            <span class="bg-input-bg text-text-base text-xs font-bold px-2.5 py-1 rounded border border-base">${car.year}</span>
+                        </div>
+                        <p class="text-sm text-text-muted mb-4 line-clamp-2 flex-grow font-medium cursor-pointer" onclick="navigateToDetail(${car.id})">${car.desc}</p>
+                        
+                        <div class="grid grid-cols-2 gap-y-1 text-xs text-text-muted mb-5 border-t border-base pt-3 font-medium">
+                            <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full border border-base" style="background:${getColorHex(car.color)}"></span> ${car.color}</div>
+                            <div class="text-right font-bold text-text-base text-sm">$${car.price.toLocaleString('es-ES')}</div>
+                        </div>
+                        
+                        <button onclick="event.stopPropagation(); toggleCarForComparison(${car.id})" 
+                            class="mt-auto w-full py-3 rounded-xl font-bold text-sm transition-all shadow-md flex items-center justify-center gap-2 
+                            ${isSelected ? 'bg-red-500/10 text-red-500 border border-red-500/50 hover:bg-red-600 hover:text-white' : 'bg-primary text-white hover:bg-blue-600 hover:shadow-blue-500/30'}">
+                            <i data-lucide="${isSelected ? 'minus' : 'plus'}" class="w-4 h-4"></i>
+                            ${isSelected ? 'Quitar' : 'Comparar'}
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+            lucide.createIcons();
+            updateComparisonBar();
+        }
+
+        // ================= HELPERS (FILTROS, ETC) =================
+        function applyFilters() {
+            let filtered = [...CAR_DATA];
+            const term = document.getElementById('search-input').value.toLowerCase().trim();
+            if (term) filtered = filtered.filter(c => c.name.toLowerCase().includes(term) || c.brand.toLowerCase().includes(term) || c.type.toLowerCase().includes(term));
+
+            const activeFilters = {};
+            document.querySelectorAll('#filter-options input:checked').forEach(cb => {
+                const key = cb.dataset.key;
+                if (!activeFilters[key]) activeFilters[key] = [];
+                activeFilters[key].push(cb.dataset.value);
+            });
+            Object.keys(activeFilters).forEach(key => filtered = filtered.filter(car => activeFilters[key].includes(car[key])));
+
+            if (showingFavoritesOnly) filtered = filtered.filter(c => favoriteIds.includes(c.id));
+            
+            const sortMode = document.getElementById('sort-select').value;
+            filtered.sort((a, b) => {
+                switch(sortMode) {
+                    case 'price-asc': return a.price - b.price;
+                    case 'price-desc': return b.price - a.price;
+                    case 'hp-desc': return b.hp - a.hp;
+                    case 'year-desc': return b.year - a.year;
+                    default: return 0;
+                }
+            });
+            renderCars(filtered);
+        }
+
+        function toggleFavorite(id) {
+            const index = favoriteIds.indexOf(id);
+            if (index === -1) { favoriteIds.push(id); showToast('Añadido a favoritos', 'heart'); }
+            else { favoriteIds.splice(index, 1); showToast('Eliminado de favoritos', 'trash-2'); }
+            localStorage.setItem('carFavorites', JSON.stringify(favoriteIds));
+            updateFavoritesBadge();
+            applyFilters(); 
+            if(!document.getElementById('detail-view').classList.contains('hidden')) updatePageDetailButtons(id);
+        }
+
+        function toggleCarForComparison(id) {
+            const car = CAR_DATA.find(c => c.id === id);
+            if (!car) return;
+            const idx = comparisonCars.findIndex(c => c.id === id);
+            if (idx > -1) comparisonCars.splice(idx, 1);
+            else {
+                if (comparisonCars.length >= 2) { showToast('Máximo 2 coches', 'alert-circle'); return; }
+                comparisonCars.push(car);
+            }
+            applyFilters();
+            updateComparisonBar();
+            if(!document.getElementById('detail-view').classList.contains('hidden')) updatePageDetailButtons(id);
+        }
+
+        function updateComparisonBar() {
+            const bar = document.getElementById('comparison-bar');
+            const slot1 = document.getElementById('slot-1');
+            const slot2 = document.getElementById('slot-2');
+            const btn = document.getElementById('compare-action-btn');
+            
+            if(!document.getElementById('detail-view').classList.contains('hidden')) {
+                bar.classList.add('translate-y-full');
+                return;
+            }
+
+            if (comparisonCars.length > 0) bar.classList.remove('translate-y-full');
+            else bar.classList.add('translate-y-full');
+
+            const renderSlot = (car) => car ? `<div class="flex items-center gap-2 w-full overflow-hidden px-2"><img src="${car.img}" class="w-6 h-6 rounded object-cover"><span class="truncate font-medium text-text-base">${car.name}</span><button onclick="toggleCarForComparison(${car.id}); event.stopPropagation();" class="ml-auto text-text-muted hover:text-red-500"><i data-lucide="x" class="w-4 h-4"></i></button></div>` : '<span class="text-text-muted italic font-medium">Vacío</span>';
+            slot1.innerHTML = renderSlot(comparisonCars[0]);
+            slot2.innerHTML = renderSlot(comparisonCars[1]);
+            btn.disabled = comparisonCars.length !== 2;
+            lucide.createIcons();
+        }
+
+        // --- Boilerplate ---
+        function generateFilterOptions() {
+            const container = document.getElementById('filter-options');
+            const keys = ['brand', 'type', 'color'];
+            const labels = { brand: 'Marca', type: 'Carrocería', color: 'Color' };
+            keys.forEach(key => {
+                const values = [...new Set(CAR_DATA.map(c => c[key]))].sort();
+                container.innerHTML += `<div><h3 class="font-bold text-text-muted mb-3 text-sm uppercase tracking-wider">${labels[key]}</h3><div class="grid grid-cols-1 gap-2">${values.map(val => `<label class="flex items-center space-x-3 cursor-pointer group"><div class="relative flex items-center"><input type="checkbox" data-key="${key}" data-value="${val}" class="peer h-5 w-5 cursor-pointer appearance-none rounded border border-base bg-input-bg checked:border-primary checked:bg-primary transition-all"><i data-lucide="check" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white opacity-0 peer-checked:opacity-100 pointer-events-none"></i></div><span class="text-text-base group-hover:text-primary transition-colors text-sm font-medium">${val}</span></label>`).join('')}</div></div>`;
+            });
+        }
+        function clearFilters() {
+            document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+            document.getElementById('search-input').value = '';
+            document.getElementById('sort-select').value = 'default';
+            showingFavoritesOnly = false;
+            document.getElementById('fav-filter-btn').classList.remove('active', 'bg-red-500/10', 'border-red-500');
+            applyFilters();
+            document.getElementById('filter-sidebar').classList.remove('translate-x-0');
+            document.getElementById('filter-sidebar').classList.add('translate-x-full');
+        }
+        function toggleFilterSidebar() { const sb = document.getElementById('filter-sidebar'); sb.classList.toggle('translate-x-full'); sb.classList.toggle('translate-x-0'); }
+        function toggleSettingsModal() { const m = document.getElementById('settings-modal'); m.classList.toggle('hidden'); m.classList.toggle('flex'); }
+        function showToast(msg, iconName) {
+            const container = document.getElementById('toast-container');
+            const el = document.createElement('div');
+            el.className = 'bg-card text-text-base px-5 py-3 rounded-xl shadow-2xl border border-base flex items-center gap-3 mb-2 animate-fade-in font-medium';
+            el.innerHTML = `<i data-lucide="${iconName}" class="text-primary w-5 h-5"></i> <span>${msg}</span>`;
+            container.appendChild(el);
+            lucide.createIcons();
+            setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 500); }, 2000);
+        }
+        
+        function updateTheme() {
+            const p = document.getElementById('primary-color-picker').value;
+            const root = document.documentElement;
+            root.style.setProperty('--primary-color', p);
+            localStorage.setItem('carGuideThemeV2', JSON.stringify({ p }));
+        }
+        function loadTheme() { 
+            const t = JSON.parse(localStorage.getItem('carGuideThemeV2')); 
+            if (t) { 
+                document.getElementById('primary-color-picker').value = t.p; 
+                updateTheme(); 
+            } 
+        }
+        function resetTheme() { 
+            localStorage.removeItem('carGuideThemeV2'); 
+            document.getElementById('primary-color-picker').value = '#3b82f6'; 
+            updateTheme(); 
+            toggleSettingsModal(); 
+        }
+        function updateFavoritesBadge() { const badge = document.getElementById('fav-count-badge'); badge.textContent = favoriteIds.length; if(favoriteIds.length > 0) badge.classList.remove('hidden'); else badge.classList.add('hidden'); }
+        function toggleFavFilter() { showingFavoritesOnly = !showingFavoritesOnly; const btn = document.getElementById('fav-filter-btn'); if (showingFavoritesOnly) btn.classList.add('active', 'bg-red-500/10', 'border-red-500'); else btn.classList.remove('active', 'bg-red-500/10', 'border-red-500'); applyFilters(); }
+        
+        // Comparador modal
+        function openComparisonModal() {
+            if (comparisonCars.length !== 2) return;
+            const c1 = comparisonCars[0], c2 = comparisonCars[1];
+            const fields = [{ k: 'brand', l: 'Marca' }, { k: 'year', l: 'Año', num: true, high: true }, { k: 'hp', l: 'Potencia', num: true, unit: ' CV', high: true }, { k: 'price', l: 'Precio', num: true, unit: '$', pre: true, high: false }];
+            const renderCard = (car, otherCar) => {
+                let html = `<div class="bg-input-bg p-5 rounded-xl border border-base text-center mb-6"><img src="${car.img}" class="w-full h-40 object-cover rounded-lg mb-3 shadow-lg"><h3 class="font-bold text-xl text-text-base">${car.name}</h3></div><div class="space-y-3">`;
+                fields.forEach(f => {
+                    let val = car[f.k];
+                    let displayVal = val;
+                    let style = "bg-card border-base";
+                    if (f.num) {
+                        displayVal = (f.pre ? f.unit : '') + val.toLocaleString() + (!f.pre && f.unit ? f.unit : '');
+                        if (val !== otherCar[f.k]) { const amIBetter = f.high ? (val > otherCar[f.k]) : (val < otherCar[f.k]); style = amIBetter ? "diff-win" : "diff-lose"; }
+                    }
+                    html += `<div class="flex flex-col p-4 rounded-lg border ${style}"><span class="text-xs text-text-muted lg:hidden mb-1 uppercase font-bold tracking-wider">${f.l}</span><span class="font-bold text-base text-text-base">${displayVal}</span></div>`;
+                });
+                return html + '</div>';
+            };
+            document.getElementById('compare-labels').innerHTML = `<div class="h-[220px]"></div>` + fields.map(f => `<div class="flex items-center justify-center h-[74px] text-text-muted font-bold text-sm border-b border-base last:border-0 tracking-wide uppercase">${f.l}</div>`).join('');
+            document.getElementById('compare-car-1').innerHTML = renderCard(c1, c2);
+            document.getElementById('compare-car-2').innerHTML = renderCard(c2, c1);
+            document.getElementById('comparison-modal').classList.remove('hidden');
+            document.getElementById('comparison-modal').classList.add('flex');
+        }
+        function closeComparisonModal() { document.getElementById('comparison-modal').classList.add('hidden'); document.getElementById('comparison-modal').classList.remove('flex'); }
+        function clearComparison() { comparisonCars = []; updateComparisonBar(); applyFilters(); }
+
+        // Utils
+        function getColorHex(name) { const map = { 'Rojo': '#ef4444', 'Azul': '#3b82f6', 'Amarillo': '#facc15', 'Blanco': '#f3f4f6', 'Verde': '#10b981', 'Gris': '#9ca3af', 'Negro': '#1f2937', 'Plata': '#d1d5db' }; return map[name] || '#6b7280'; }
+        function isColorDark(hex) { const c = hex.substring(1); const rgb = parseInt(c, 16); return (0.2126 * ((rgb >> 16) & 0xff) + 0.7152 * ((rgb >> 8) & 0xff) + 0.0722 * ((rgb >> 0) & 0xff)) < 128; }
+        function adjustColor(hex, amt) { let usePound = false; if (hex[0] == "#") { hex = hex.slice(1); usePound = true; } let num = parseInt(hex, 16); let r = (num >> 16) + amt; if (r > 255) r = 255; else if (r < 0) r = 0; let g = ((num >> 8) & 0x00FF) + amt; if (g > 255) g = 255; else if (g < 0) g = 0; let b = (num & 0x0000FF) + amt; if (b > 255) b = 255; else if (b < 0) b = 0; return (usePound ? "#" : "") + (g | (b << 8) | (r << 16)).toString(16).padStart(6,'0'); }
+    </script>
+</body>
+</html>
