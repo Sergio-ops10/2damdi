@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>El Adivinador - Estilo Akinator</title>
+    <!-- Carga de Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Fuentes: Cinzel para títulos y Inter para texto -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Iconos Phosphor -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <style>
+        /* Reset y ajustes base */
+        body {
+            font-family: 'Inter', sans-serif;
+            height: 100dvh; 
+            width: 100vw;
+            overflow: hidden;
+            background-color: #1a202c;
+            user-select: none;
+            /* Perspectiva para el efecto 3D global */
+            perspective: 1500px;
+        }
+        
+        h1, h2, .magic-font {
+            font-family: 'Cinzel', serif;
+        }
+        
+        .bg-magic {
+            background: radial-gradient(circle at 50% 30%, #5e1c53 0%, #380e30 100%);
+        }
+
+        /* Estilos de Toggle (Switch) */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #68D391;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #68D391;
+        }
+        
+        .text-gold-gradient {
+            background: linear-gradient(to bottom, #ffd700, #f59e0b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        /* Botón estilo Akinator */
+        .btn-akinator {
+            background: linear-gradient(to bottom, #fef08a, #facc15);
+            border-bottom: 4px solid #b45309;
+            color: #451a03;
+        }
+        .btn-akinator:active {
+            transform: translateY(2px);
+            border-bottom: 2px solid #b45309;
+        }
+
+        /* Gestión de pantallas */
+        .screen {
+            display: none;
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+            flex-direction: column;
+            /* Suaviza la renderización durante animaciones */
+            backface-visibility: hidden;
+            transform-style: preserve-3d;
+        }
+        .screen.active {
+            display: flex;
+        }
+
+        /* === ANIMACIONES DE GIRO 3D (FLIP) === */
+        
+        /* Clase para girar hacia afuera (la pantalla actual se va) */
+        .flip-out {
+            animation: rotateOut 0.8s cubic-bezier(0.45, 0, 0.55, 1) forwards;
+            pointer-events: none; /* Evitar clics durante la animación */
+        }
+
+        /* Clase para girar hacia adentro (la nueva pantalla llega) */
+        .flip-in {
+            animation: rotateIn 0.8s cubic-bezier(0.45, 0, 0.55, 1) forwards;
+        }
+
+        @keyframes rotateOut {
+            0% { transform: rotateY(0) scale(1); opacity: 1; }
+            100% { transform: rotateY(-180deg) scale(0.8); opacity: 0; }
+        }
+
+        @keyframes rotateIn {
+            0% { transform: rotateY(180deg) scale(0.8); opacity: 0; }
+            100% { transform: rotateY(0) scale(1); opacity: 1; }
+        }
+
+        /* Animación flotante suave para el genio */
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .animate-float {
+            animation: float 3s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="text-white">
+
+    <!-- AUDIO ASSETS -->
+    <!-- Se han eliminado los reproductores de música (YouTube/Audio) -->
+
+    <audio id="sfx-click">
+        <source src="https://pixabay.com/es/music/futuro-bajo-background-music-159125/" type="audio/wav">
+    </audio>
+    
+    <!-- Script para cargar sonidos Base64 garantizados -->
+    <script>
+        const clickSoundBase64 = "data:audio/wav;base64,UklGRjIAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YRAAAAAAAAHz/v7/AAAA//8AAP7/AAABAAAA"; 
+        // Usaremos WebAudio API para generar el sonido "swoosh" del giro
+    </script>
+
+    <!-- ================= PANTALLA DE INICIO (HOME) ================= -->
+    <div id="screen-home" class="screen active bg-magic relative">
+        <div class="absolute inset-0 z-0 opacity-20 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/stardust.png')]"></div>
+
+        <div class="relative z-10 flex flex-col h-full justify-between pb-safe">
+            
+            <!-- Header -->
+            <header class="flex justify-between items-center p-4 w-full">
+                <button onclick="playClick(); navigateTo('settings')" class="text-yellow-400 hover:text-yellow-200 transition p-2">
+                    <i class="ph-fill ph-gear text-3xl"></i>
+                </button>
+                
+                <div id="user-display" class="hidden flex items-center gap-2 bg-black/30 px-3 py-1 rounded-full">
+                    <i class="ph-fill ph-user text-yellow-400"></i>
+                    <span id="username-span" class="text-xs text-yellow-100 font-bold">Usuario</span>
+                    <button onclick="logout()" class="text-red-400 hover:text-red-300 ml-1"><i class="ph-bold ph-sign-out"></i></button>
+                </div>
+
+                <div class="flex-1"></div>
+                <button onclick="playClick(); navigateTo('login')" class="text-gray-300 hover:text-white transition p-2">
+                    <i class="ph-fill ph-user-circle text-3xl"></i>
+                </button>
+            </header>
+
+            <!-- Área Central -->
+            <div class="flex-1 flex flex-col items-center justify-center -mt-4 min-h-0">
+                <div class="text-center transform -rotate-2 mb-2">
+                     <h1 class="text-4xl sm:text-5xl md:text-6xl font-black text-gold-gradient tracking-wider drop-shadow-lg leading-tight" data-i18n="app_title">
+                        GENIUS
+                    </h1>
+                </div>
+
+                <div class="relative flex flex-col items-center justify-center w-full max-h-[45vh] sm:max-h-[50vh]">
+                    <img src="https://lh3.googleusercontent.com/rd-gg/AIJ2gl8jwiEoxVIQNuU0Aw3h3qwVpFS1WX1tcqEsm_VAW_NOV7Wt64YGcFkvQMhvGq1YOYK_wGrNKu6vdRhFhHruOAUE_RBzXdjmMfYGIfeLhtoxmg6tCWGKmSgfWuDJ7m3-8_bNlYkFtPav0B0w71Qo-dqu6gYl-qSwhZ5uccjhb3IukEbIm2MS43MbT8XXnD2iKEIdUbwdlyMl9RvNXc42Rqw1W7PQGtRDfWG2fuHSq3t890qLK9GwgtgOnPGFpD4GSo7A0Rclpg6RHjQ4LTd77hBZktB0us2aTadBTQclrtA18kQO130IKV4bkBTHKFYpllFHU7H1wN54qWVjwevCm3Q0dvXR33fzOGAVm9uvj1SjPI2Qf-R9VcGtFzYwGZj2ORR3-v87FpYwCXndP4F4h93JPo-nsOrDwwIZNGpm6vNw_TBtvnHJ0bqr6rzKz7GgNTJ-CeyULH9GG1fsIedpqd0TlXOA5ZjllfLusV0Sc2OGUko1csSxVYj-VeWrFX3-gGEyNv87BrbMP8xpvQk7SgFNN29cUHnyQ-Ixj4xMuYwdU6M2ajJEfeHf4B7P_Eyn4AcUlmWYY6N8y5iSgD-Vg8u6-cncRtfkQ3uDfsTFZ_KXmzIj4irJ0e64usj-cFhVk_kC9r6qf_nYPwDr0W-NGHdgQJQoCIh7eWysLejVJMfWwoyiLh-4ycqwfXU4iyuCaJXjr1IWLjqPU6Hy3yab8GupKckCnY9A00XXkFUg3Q3zVy1lbEj3fLXIw3EGkajh_HKaog6cpwHXyQ1IQRttmMyHYUW9WO3XZDIoK9AxDuQCOniI6GuEUR9IUkKJCi_P3Kdjq1YSaIq9CkRBmJs1dmkx0PRhUKI0hiJG0sx_S7I2ylalaA_djvg_bMfI2Ntp3ICDjqNeT5OOwQ4mEIpBig6Q6PdWlqg7vVYhs4pmzIJyNBKBvpCp3H0CMB0tjIxDp7ql-E1XtIZc2cLZomL7MjkbG3jTLBNYEG6P5yLCHGm2r-ZfGjb2CmObuz5B5oSAk_wkYddgs1WhUXUAh0pck99fXK4dz9Gz_knimZ1vJz4hiRt5OYuCiudGk--e2DGhlUYBZRokFZDdtYBZ5PQ3N-2WlPGc2fUjN03hFxR4PIkhXnIw0ioOoaRobzCmfQVhuxoECx0CCrAjLr-f7PqcY2q_25SNihjVBvOL9_46x5Q197IUciXuV5we-84vZwaWnHv1sFChJmuL_V8vMjdC9iG8xVe7CRc39HGkFtKNc9Rqz7WztNqy_2BACvfuYwLsFKsR1WsH9C13s31g8TmUAwNpWtryr5NLUtTNtGFtrkFfjKeRB6oSwCrkRg_vshclKwT1xGol0h3KtbjAzxIh6tX0FdgSy7ieAKJLpTt6PIN3Oz5DG7dl0YgqNFB-yg7E66MnDKd_lvQA-9e2PFsGTGQP7NUpa_r8kxDaa0tR4CKBaZMB75rGtAdVfUh_cXA=s1024-rj" class="h-full w-auto object-contain drop-shadow-2xl animate-float p-4" alt="Genio">
+                </div>
+            </div>
+
+            <!-- Área Inferior -->
+            <div class="w-full px-6 pb-6 sm:pb-8 flex flex-col items-center gap-4 mt-4">
+                <div class="w-full max-w-md bg-black/40 backdrop-blur-sm border border-white/10 rounded-lg p-3 sm:p-4 text-center shadow-lg">
+                    <p class="text-base sm:text-lg text-gray-200 font-medium magic-font leading-tight" data-i18n="think_character">
+                        Piensa en un personaje real o ficticio
+                    </p>
+                    <p class="text-xs text-gray-400 mt-1" data-i18n="i_will_guess">Yo lo adivinaré</p>
+                </div>
+
+                <button onclick="startGame()" class="w-full max-w-md btn-akinator py-3 sm:py-4 rounded-full shadow-2xl transition-all group relative overflow-hidden active:scale-95">
+                    <span class="block text-xl sm:text-2xl font-black magic-font tracking-wide" data-i18n="btn_challenge">RÉTAME</span>
+                    <span class="block text-[10px] sm:text-xs font-semibold uppercase tracking-wider opacity-80 mt-0.5" data-i18n="read_mind">Leeré tu mente</span>
+                    <div class="absolute inset-0 bg-white/30 transform -skew-x-12 -translate-x-full group-hover:animate-shine"></div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= PANTALLA DE JUEGO (GAME) ================= -->
+    <div id="screen-game" class="screen bg-magic relative">
+        <header class="flex-none flex justify-between items-center p-4 z-20 bg-black/20 backdrop-blur-md">
+            <button onclick="playClick(); navigateTo('home')" class="text-white/80 hover:text-white p-2">
+                <i class="ph-bold ph-arrow-left text-2xl"></i>
+            </button>
+            <span class="font-bold text-yellow-400 magic-font text-lg" data-i18n="game_header">EL ADIVINADOR</span>
+            <div class="w-10"></div>
+        </header>
+
+        <div class="flex-1 flex flex-col items-center justify-start p-4 overflow-y-auto">
+            <div class="flex-none h-4 sm:h-8"></div>
+
+            <div class="w-full max-w-lg bg-white text-gray-800 rounded-2xl p-6 shadow-2xl border-l-8 border-yellow-400 relative mb-6 min-h-[120px] flex flex-col justify-center items-center text-center">
+                <div class="absolute -bottom-3 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[15px] border-t-white"></div>
+                
+                <p id="question-text" class="text-lg sm:text-2xl font-bold mb-2 leading-snug" data-i18n="preparing_ball">
+                    Preparando mi bola de cristal...
+                </p>
+                <p id="sub-text" class="text-sm text-gray-500 italic" data-i18n="concentrate">
+                    Concentra tu mente en el personaje.
+                </p>
+                
+                <div id="sources-container" class="w-full mt-4 pt-4 border-t border-gray-100 text-xs text-left hidden">
+                    <p class="font-bold text-gray-400 mb-1 flex items-center gap-1">
+                        <i class="ph-bold ph-google-logo"></i> <span data-i18n="sources">Fuentes:</span>
+                    </p>
+                    <ul id="source-list" class="space-y-1 text-blue-600"></ul>
+                </div>
+            </div>
+
+            <img src="https://lh3.googleusercontent.com/rd-gg/AIJ2gl9ZNTdFoITL2nvs6maJX6LDye-afXvD0V6e930GtLij9npIKI5K1g4xZfHob6uatZloh0jqxLJ-TgS8ZfKvVP2TbOvJqtKp2bDxu4CPqvHZLqfefxsBfOc4lhTykY7UBtlNGpRbPEyzFcYui3HxbW3J4NDYZhzacY1hRONYJjww-rQCMYuWZcfKGjLJf2d_zvLpwomYoziUTzXidal52QF-8JzXLon3hwLstw5AbZhY4WbvQlmxZak9c37k1GoCAlOgGfL4EqFYYpODgOpqoHqXSGr83li3BfB7p_eExB6Qq6-iXB2meS3N7hihk_QsDVOZ6wVvElFFzIYky1TDjKDjooc2tFYqXsw386j2DDF0-TKfIH3uGQJ6kzmqBGbGDQrkKAnMkDvARB-PxV8ibyWtoE-sDbiRKaNqHEJQL4gx8gz8uyJ3KL7DacT4X_tviF3BR7fB-AJGqDWGxeBMkhJ1_7Iyrl-glAEAMRSmiqE7ZVTkKXyrx1PJPshKByiESDtc1e_gl4h_wV0ccFdh0Uv9hPIK78GOrGZM7ve6cVJQhHTQsM97HradkQckvPL0NA2VM5yJdFvM51TskAN63Nqbhkon7wOynTV_YSFrMUV1lG5OA4AOnnegoPI__vYNc0MzFySAJw9jvLN0yvA-20tLononGLscLKMdcH1AYf5iYC048XRyTZhNdC55m9RcE8HnCXILWPFj-5Mk6npJq99szlGWhQymUdD_Gcl8_BGyXO7HUKFGTCtNrDwajHIW15Xwn9eYH4hMwC_Y7GQ_kdLFo5ooR4B2Pn3vwuwuARjMYXC3Kpu7tPSDUMaBwozraKZFoGW4GqY-b8J6oTDvPG7nlmI7lRMijDHhkADrG8R2zLLXcY_4du2FnivEogE-HPxImR_3PCi-_C6_Sctk-V0S-dkEzKFRw6moUWTA25ZYaamGOsZgRYIlFd7KavYDGUFd5DVGHZRT4JTEOpEGd8b4aQ9i9K_zOoMYR9wC0uSYlNCNkvuwNuzdKQy7ZmV7dLepcc9l6DdCsA3UUZZfYcP5PAuSKaGTZ7UbcivYZfYRH5qWykC_yBl3yYCUdJeEZbRJeca95wvFhq0PkBrnGs0xRu0-1VLFL2QRXiCQi4vuJYOMYaphCetTP1dvmnx71WZANRaINoIQP66Z0REBzIG8_ERF6N6vwT9waQSPNIdFZChhepmaBgROPoPmWE86wA_S2ENeN24IeKg_tQu76GX75CinQrxG1FAHaaggo-2Zoeq1487RX9qEuJgV42Rl-J4YdRUtx5aYwR6cVetiJx5JBDeqAzKTpe9PtnW0R7DGQVS7UXJGIkO6_Hf0d5D4UZpPdAXl-kqQtILmWRmuLusCWQFreKyDHHZwlSB7tYZjGfVcTvz1O1VGlo5-XiUKeKShBovF5PZItAO8hCljN17-2Q075hCr1tNipbByyzKWot-KNSwjll5DxvgX4bs=s1024-rj" class="w-20 h-20 sm:w-24 sm:h-24 mb-6 drop-shadow-xl animate-float" alt="Genio">
+
+            <div id="answer-buttons" class="grid grid-cols-1 gap-3 w-full max-w-sm hidden pb-8">
+                <button onclick="handleAnswer('yes')" class="bg-white hover:bg-green-50 text-gray-800 font-bold py-3 sm:py-4 px-6 rounded-xl border-l-4 border-green-500 shadow-md transition transform active:scale-95 flex items-center justify-between group">
+                    <span class="text-base sm:text-lg" data-i18n="btn_yes">Sí</span> <i class="ph-fill ph-check-circle text-green-500 text-2xl group-hover:scale-110 transition"></i>
+                </button>
+                <button onclick="handleAnswer('no')" class="bg-white hover:bg-red-50 text-gray-800 font-bold py-3 sm:py-4 px-6 rounded-xl border-l-4 border-red-500 shadow-md transition transform active:scale-95 flex items-center justify-between group">
+                    <span class="text-base sm:text-lg" data-i18n="btn_no">No</span> <i class="ph-fill ph-x-circle text-red-500 text-2xl group-hover:scale-110 transition"></i>
+                </button>
+                <button onclick="handleAnswer('maybe')" class="bg-white hover:bg-yellow-50 text-gray-800 font-bold py-3 sm:py-4 px-6 rounded-xl border-l-4 border-yellow-500 shadow-md transition transform active:scale-95 flex items-center justify-between group">
+                    <span class="text-base sm:text-lg" data-i18n="btn_maybe">No sé / Quizás</span> <i class="ph-fill ph-question text-yellow-500 text-2xl group-hover:scale-110 transition"></i>
+                </button>
+            </div>
+
+            <div id="input-area" class="w-full max-w-sm hidden flex flex-col gap-3 pb-8">
+                <input type="text" id="character-input" placeholder="Nombre del personaje (ej: Messi)" 
+                       class="w-full p-4 rounded-xl text-gray-900 border-2 border-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 shadow-inner text-lg">
+                <button onclick="revealCharacterAndLearn()" class="btn-akinator py-3 sm:py-4 rounded-xl font-bold shadow-lg transform active:scale-95 text-lg" data-i18n="btn_reveal">
+                    ¡Revelar y Enseñarme!
+                </button>
+            </div>
+
+            <button id="btn-restart-hidden" onclick="restartGame()" class="hidden mt-4 text-yellow-300 hover:text-white underline font-semibold text-lg pb-8" data-i18n="btn_play_again">
+                Jugar otra vez
+            </button>
+            
+            <p id="api-status" class="text-xs text-yellow-200/50 mt-auto pb-4 text-center hidden animate-pulse" data-i18n="consulting">Consultando...</p>
+        </div>
+    </div>
+
+    <!-- ================= PANTALLA DE AJUSTES (SETTINGS) ================= -->
+    <div id="screen-settings" class="screen bg-[#fff9c4] text-gray-800">
+        <header class="bg-[#fcd34d] p-4 flex items-center shadow-md sticky top-0 z-30">
+            <button onclick="playClick(); navigateTo('home')" class="text-gray-800 p-2">
+                <i class="ph-bold ph-arrow-left text-2xl"></i>
+            </button>
+            <h2 class="flex-1 text-center text-xl font-bold text-gray-800 magic-font" data-i18n="settings_title">AJUSTES</h2>
+            <div class="w-10"></div>
+        </header>
+
+        <div class="p-0 overflow-y-auto">
+            <!-- Selector de Idioma -->
+            <div onclick="playClick(); cycleLanguage()" class="flex items-center justify-between p-5 border-b border-yellow-200 bg-[#fffde7] active:bg-yellow-100 cursor-pointer hover:bg-yellow-50 transition">
+                <div class="flex items-center gap-3">
+                    <i class="ph-light ph-globe text-2xl text-gray-600"></i>
+                    <span class="text-lg font-medium" data-i18n="setting_lang">Idioma</span>
+                </div>
+                <div class="flex items-center gap-2 text-gray-500">
+                    <span id="current-lang-display" class="font-bold text-yellow-700">Español</span>
+                    <i class="ph-bold ph-caret-right"></i>
+                </div>
+            </div>
+
+            <div class="bg-[#fffde7]">
+                <!-- Opción de Música ELIMINADA -->
+
+                <!-- Efectos -->
+                <div class="flex items-center justify-between p-5 border-b border-yellow-200">
+                    <span class="text-lg font-medium" data-i18n="setting_fx">Efectos</span>
+                    <div class="relative inline-block w-12 mr-2 align-middle select-none">
+                        <input type="checkbox" id="toggle-fx" checked onchange="toggleEffects(this.checked)" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer border-gray-300 checked:right-0 checked:border-green-400 transition-all duration-300"/>
+                        <label for="toggle-fx" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer checked:bg-green-400 transition-colors duration-300"></label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= PANTALLA DE LOGIN / REGISTRO ================= -->
+    <div id="screen-login" class="screen bg-[#fff9c4] flex flex-col items-center">
+        <div class="w-full bg-[#4a0e4e] pt-safe-top pb-6 rounded-b-[40%] sm:rounded-b-[50%] shadow-lg relative mb-8 sm:mb-12 shrink-0">
+            <div class="pt-4 px-4">
+                <button onclick="playClick(); navigateTo('home')" class="absolute top-4 left-4 text-white/70 hover:text-white p-2">
+                    <i class="ph-bold ph-arrow-left text-2xl"></i>
+                </button>
+                <div class="flex flex-col items-center mt-2">
+                    <div class="bg-[#e9d5ff] rounded-full p-3 mb-2 shadow-inner">
+                        <i class="ph-fill ph-user text-3xl text-[#4a0e4e]"></i>
+                    </div>
+                    <h2 id="login-title" class="text-3xl font-script text-white magic-font italic tracking-wide" data-i18n="login_title">Iniciar sesión</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="w-full max-w-sm px-6 flex flex-col gap-4 overflow-y-auto pb-8">
+            <!-- Campo Nombre (Solo para Registro) -->
+            <input type="text" id="reg-name" placeholder="Nombre (ej: Carlos)" class="hidden w-full p-4 bg-[#fffde7] border border-yellow-300 rounded-lg text-gray-700 placeholder-gray-400 focus:outline-none focus:border-yellow-500 shadow-sm text-lg">
+            
+            <input type="text" id="auth-email" placeholder="Usuario/Correo" class="w-full p-4 bg-[#fffde7] border border-yellow-300 rounded-lg text-gray-700 placeholder-gray-400 focus:outline-none focus:border-yellow-500 shadow-sm text-lg">
+            
+            <div class="relative w-full">
+                <input type="password" id="auth-password" placeholder="Contraseña (ej: 12345)" class="w-full p-4 bg-[#fffde7] border border-yellow-300 rounded-lg text-gray-700 placeholder-gray-400 focus:outline-none focus:border-yellow-500 shadow-sm text-lg">
+            </div>
+
+            <p id="auth-error" class="text-red-500 text-sm text-center font-bold hidden"></p>
+
+            <button onclick="handleAuthSubmit()" id="btn-auth-action" class="w-full mt-4 bg-[#fde047] hover:bg-[#facc15] text-[#581c0c] font-bold py-4 rounded-lg border-b-4 border-[#d97706] active:border-b-0 active:translate-y-1 transition-all magic-font text-xl shadow-md" data-i18n="btn_login">
+                Conectarse
+            </button>
+
+            <p class="text-center text-gray-600 text-sm mt-6">
+                <span id="auth-toggle-text" data-i18n="no_account">¿No tienes una cuenta?</span> 
+                <span onclick="toggleAuthMode()" class="underline cursor-pointer font-bold text-[#581c0c]" id="auth-toggle-btn" data-i18n="register_link">Regístrate</span>
+            </p>
+        </div>
+    </div>
+
+    <!-- LÓGICA DE INTERFAZ, IDIOMA Y AUTH -->
+    <script>
+        // --- 1. CONFIGURACIÓN E IDIOMAS ---
+        const translations = {
+            es: {
+                app_title: "GENIUS",
+                think_character: "Piensa en un personaje real o ficticio",
+                i_will_guess: "Yo lo adivinaré",
+                btn_challenge: "RÉTAME",
+                read_mind: "Leeré tu mente",
+                game_header: "EL ADIVINADOR",
+                preparing_ball: "Preparando mi bola de cristal...",
+                concentrate: "Concentra tu mente en el personaje.",
+                sources: "Fuentes:",
+                btn_yes: "Sí",
+                btn_no: "No",
+                btn_maybe: "No sé",
+                btn_reveal: "¡Revelar y Enseñarme!",
+                btn_play_again: "Jugar otra vez",
+                consulting: "Consultando...",
+                settings_title: "AJUSTES",
+                setting_lang: "Idioma",
+                setting_fx: "Efectos", // Música eliminada del texto
+                login_title: "Iniciar sesión",
+                btn_login: "Conectarse",
+                btn_register: "Registrarse",
+                no_account: "¿No tienes una cuenta?",
+                have_account: "¿Ya tienes cuenta?",
+                register_link: "Regístrate",
+                login_link: "Inicia sesión",
+                ph_name: "Nombre (ej: Carlos)",
+                ph_pass: "Contraseña",
+                error_fill: "Rellena todos los campos",
+                error_exists: "El usuario ya existe",
+                error_invalid: "Usuario o contraseña incorrectos",
+                success_reg: "¡Registrado! Ahora inicia sesión."
+            },
+            en: {
+                app_title: "GENIUS",
+                think_character: "Think of a real or fictional character",
+                i_will_guess: "I will guess it",
+                btn_challenge: "CHALLENGE ME",
+                read_mind: "I will read your mind",
+                game_header: "THE GUESSER",
+                preparing_ball: "Preparing my crystal ball...",
+                concentrate: "Focus your mind on the character.",
+                sources: "Sources:",
+                btn_yes: "Yes",
+                btn_no: "No",
+                btn_maybe: "Don't Know",
+                btn_reveal: "Reveal & Teach Me!",
+                btn_play_again: "Play Again",
+                consulting: "Consulting...",
+                settings_title: "SETTINGS",
+                setting_lang: "Language",
+                setting_fx: "Sound Effects", // Música eliminada del texto
+                login_title: "Login",
+                btn_login: "Connect",
+                btn_register: "Register",
+                no_account: "Don't have an account?",
+                have_account: "Already have an account?",
+                register_link: "Sign Up",
+                login_link: "Sign In",
+                ph_name: "Name (e.g. Charles)",
+                ph_pass: "Password",
+                error_fill: "Fill all fields",
+                error_exists: "User already exists",
+                error_invalid: "Invalid username or password",
+                success_reg: "Registered! Please log in."
+            },
+            fr: {
+                app_title: "GÉNIE",
+                think_character: "Pensez à un personnage réel ou fictif",
+                i_will_guess: "Je vais le deviner",
+                btn_challenge: "DÉFIEZ-MOI",
+                read_mind: "Je lirai dans vos pensées",
+                game_header: "LE DEVIN",
+                preparing_ball: "Je prépare ma boule de cristal...",
+                concentrate: "Concentrez-vous sur le personnage.",
+                sources: "Sources:",
+                btn_yes: "Oui",
+                btn_no: "Non",
+                btn_maybe: "Je ne sais pas",
+                btn_reveal: "Révéler et m'apprendre !",
+                btn_play_again: "Rejouer",
+                consulting: "Consultation...",
+                settings_title: "PARAMÈTRES",
+                setting_lang: "Langue",
+                setting_fx: "Effets Sonores", // Música eliminada del texto
+                login_title: "Connexion",
+                btn_login: "Se connecter",
+                btn_register: "S'inscrire",
+                no_account: "Pas de compte ?",
+                have_account: "Déjà un compte ?",
+                register_link: "S'inscrire",
+                login_link: "Se connecter",
+                ph_name: "Nom (ex: Charles)",
+                ph_pass: "Mot de passe",
+                error_fill: "Remplissez tous les champs",
+                error_exists: "L'utilisateur existe déjà",
+                error_invalid: "Nom ou mot de passe incorrect",
+                success_reg: "Inscrit ! Connectez-vous."
+            }
+        };
+
+        const state = {
+            lang: 'es', // es, en, fr
+            // music: false, <-- ELIMINADO
+            fx: true,
+            user: null, // { name: '', id: '' }
+            isRegisterMode: false
+        };
+
+        const availableLangs = ['es', 'en', 'fr'];
+        const langNames = { es: 'Español', en: 'English', fr: 'Français' };
+
+        // --- 2. FUNCIONES DE UI Y EFECTOS ---
+        
+        // --- SE HA ELIMINADO TODA LA LÓGICA DE LA API DE YOUTUBE ---
+        
+        // Uso de Web Audio API simple para garantizar sonidos de click
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioContext();
+
+        function playTone(freq, type, duration) {
+            if (!state.fx) return;
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        }
+
+        function playClick() {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            playTone(600, 'sine', 0.1); // Sonido "pop" simple
+        }
+
+        function playMagic() {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            // Secuencia de sonido mágico
+            playTone(500, 'sine', 0.1);
+            setTimeout(() => playTone(1000, 'sine', 0.1), 100);
+            setTimeout(() => playTone(1500, 'sine', 0.2), 200);
+        }
+        
+        function playSwoosh() {
+            if (!state.fx || audioCtx.state === 'suspended') {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                if (!state.fx) return;
+            }
+            // Simple noise buffer for whoosh sound
+            const bufferSize = audioCtx.sampleRate * 0.5; // 0.5 sec
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = Math.random() * 2 - 1;
+            }
+            const noise = audioCtx.createBufferSource();
+            noise.buffer = buffer;
+            const noiseFilter = audioCtx.createBiquadFilter();
+            noiseFilter.type = 'lowpass';
+            noiseFilter.frequency.value = 400;
+            const gainNode = audioCtx.createGain();
+            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+            
+            noise.connect(noiseFilter);
+            noiseFilter.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            noise.start();
+        }
+
+        // Se ha ELIMINADO la función toggleMusic
+        // function toggleMusic(checked) { ... }
+
+        function toggleEffects(checked) {
+            state.fx = checked;
+        }
+
+        function updateTexts() {
+            const t = translations[state.lang];
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (t[key]) el.textContent = t[key];
+            });
+            // Placeholders
+            document.getElementById('reg-name').placeholder = t.ph_name;
+            document.getElementById('auth-password').placeholder = t.ph_pass;
+            
+            // Texto del selector
+            document.getElementById('current-lang-display').textContent = langNames[state.lang];
+        }
+
+        function cycleLanguage() {
+            playClick();
+            const idx = availableLangs.indexOf(state.lang);
+            const nextIdx = (idx + 1) % availableLangs.length;
+            state.lang = availableLangs[nextIdx];
+            updateTexts();
+        }
+
+        function navigateTo(screenId) {
+            const currentScreen = document.querySelector('.screen.active');
+            const nextScreen = document.getElementById(`screen-${screenId}`);
+
+            if (currentScreen && currentScreen !== nextScreen) {
+                // Play flip sound if enabled
+                playSwoosh(); 
+
+                // Add flip classes
+                currentScreen.classList.add('flip-out');
+                
+                setTimeout(() => {
+                    currentScreen.classList.remove('active', 'flip-out');
+                    currentScreen.style.display = 'none'; // Ensure hidden
+                    
+                    nextScreen.style.display = 'flex'; // Ensure visible for layout
+                    nextScreen.classList.add('active', 'flip-in');
+                    
+                    setTimeout(() => {
+                        nextScreen.classList.remove('flip-in');
+                    }, 800); // Match animation duration
+                }, 800); // Wait for exit animation
+            } else {
+                // Initial load or instant
+                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+                if (nextScreen) nextScreen.classList.add('active');
+            }
+        }
+
+        // --- 3. SISTEMA DE AUTENTICACIÓN LOCAL (localStorage) ---
+        function toggleAuthMode() {
+            playClick();
+            state.isRegisterMode = !state.isRegisterMode;
+            
+            const t = translations[state.lang];
+            const title = document.getElementById('login-title');
+            const btn = document.getElementById('btn-auth-action');
+            const toggleText = document.getElementById('auth-toggle-text');
+            const toggleBtn = document.getElementById('auth-toggle-btn');
+            const nameField = document.getElementById('reg-name');
+            const errorMsg = document.getElementById('auth-error');
+
+            errorMsg.classList.add('hidden');
+
+            if (state.isRegisterMode) {
+                title.textContent = t.register_link; // "Regístrate"
+                btn.textContent = t.btn_register;
+                toggleText.textContent = t.have_account;
+                toggleBtn.textContent = t.login_link;
+                nameField.classList.remove('hidden');
+            } else {
+                title.textContent = t.login_title;
+                btn.textContent = t.btn_login;
+                toggleText.textContent = t.no_account;
+                toggleBtn.textContent = t.register_link;
+                nameField.classList.add('hidden');
+            }
+        }
+
+        function handleAuthSubmit() {
+            playClick();
+            const email = document.getElementById('auth-email').value.trim();
+            const pass = document.getElementById('auth-password').value.trim();
+            const name = document.getElementById('reg-name').value.trim();
+            const errorMsg = document.getElementById('auth-error');
+            const t = translations[state.lang];
+
+            if (!email || !pass) {
+                errorMsg.textContent = t.error_fill;
+                errorMsg.classList.remove('hidden');
+                return;
+            }
+
+            // Obtener usuarios de BD local
+            const db = JSON.parse(localStorage.getItem('akinator_users') || '{}');
+
+            if (state.isRegisterMode) {
+                // REGISTRO
+                if (!name) {
+                    errorMsg.textContent = t.error_fill;
+                    errorMsg.classList.remove('hidden');
+                    return;
+                }
+                if (db[email]) {
+                    errorMsg.textContent = t.error_exists;
+                    errorMsg.classList.remove('hidden');
+                    return;
+                }
+                // Guardar usuario
+                db[email] = { name: name, pass: pass };
+                localStorage.setItem('akinator_users', JSON.stringify(db));
+                
+                alert(t.success_reg);
+                toggleAuthMode(); // Volver a login
+            } else {
+                // LOGIN
+                if (db[email] && db[email].pass === pass) {
+                    loginUser(db[email].name);
+                } else {
+                    errorMsg.textContent = t.error_invalid;
+                    errorMsg.classList.remove('hidden');
+                }
+            }
+        }
+
+        function loginUser(name) {
+            state.user = { name: name };
+            document.getElementById('username-span').textContent = name;
+            document.getElementById('user-display').classList.remove('hidden');
+            navigateTo('home');
+            playMagic();
+            // Limpiar campos
+            document.getElementById('auth-email').value = "";
+            document.getElementById('auth-password').value = "";
+        }
+
+        function logout() {
+            state.user = null;
+            document.getElementById('user-display').classList.add('hidden');
+            playClick();
+        }
+
+        // --- 4. LÓGICA DEL JUEGO CON IA ---
+        let gameHistory = [];
+        const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent";
+        const API_KEY = "AIzaSyBaeMIq3a2qq8aiz9QHwJeaEWv_YyykX9Q"; // Inyectada por la plataforma o añade tu clave aquí manualmente si usas localmente
+
+        const els = {
+            questionText: document.getElementById('question-text'),
+            subText: document.getElementById('sub-text'),
+            answerButtons: document.getElementById('answer-buttons'),
+            inputArea: document.getElementById('input-area'),
+            characterInput: document.getElementById('character-input'),
+            btnRestart: document.getElementById('btn-restart-hidden'),
+            apiStatus: document.getElementById('api-status'),
+            sourcesContainer: document.getElementById('sources-container'),
+            sourceList: document.getElementById('source-list')
+        };
+
+        const fetchWithRetry = async (url, options, retries = 3) => {
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (response.ok) return response;
+                    if (response.status === 429) {
+                        await new Promise(r => setTimeout(r, 1000 * Math.pow(2, i)));
+                        continue;
+                    }
+                    throw new Error(response.status);
+                } catch (e) {
+                    if (i === retries - 1) throw e;
+                    await new Promise(r => setTimeout(r, 1000));
+                }
+            }
+        };
+
+        const displaySources = (sources) => {
+            els.sourceList.innerHTML = '';
+            if (sources && sources.length > 0) {
+                sources.slice(0, 3).forEach((s, i) => {
+                    els.sourceList.innerHTML += `<li class="truncate"><a href="${s.uri}" target="_blank" class="hover:underline">${i+1}. ${s.title}</a></li>`;
+                });
+                els.sourcesContainer.classList.remove('hidden');
+            } else {
+                els.sourcesContainer.classList.add('hidden');
+            }
+        };
+
+        const fetchNextStep = async () => {
+            els.apiStatus.classList.remove('hidden');
+            els.answerButtons.classList.add('hidden');
+            // Texto de "pensando"
+            els.subText.textContent = translations[state.lang].consulting;
+
+            const historyText = gameHistory.map(h => `${h.type}: ${h.text}`).join('\n');
+            const langName = langNames[state.lang];
+            
+            // Prompt multilingüe dinámico
+            const prompt = `
+            You are Akinator. Playing in language: ${langName}.
+            History:\n${historyText}
+            
+            Analyze history. 
+            If you are >85% sure of the character, respond ONLY: 'GUESS: [Character Name]'.
+            If not, ask the next YES/NO question in ${langName}. Respond ONLY: 'Q: [Question]?'.
+            `;
+
+            try {
+                const res = await fetchWithRetry(`${GEMINI_API_URL}?key=${API_KEY}`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }],
+                        tools: [{ google_search: {} }]
+                    })
+                });
+                
+                const data = await res.json();
+                const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
+                const sources = data.candidates?.[0]?.groundingMetadata?.groundingAttributions?.map(a => ({ uri: a.web?.uri, title: a.web?.title })).filter(s => s.uri) || [];
+
+                els.apiStatus.classList.add('hidden');
+                displaySources(sources);
+
+                if (text.startsWith("GUESS:")) {
+                    const guess = text.replace("GUESS:", "").trim();
+                    showGuess(guess);
+                } else if (text.startsWith("Q:")) {
+                    const q = text.replace("Q:", "").trim();
+                    showQuestion(q);
+                } else {
+                    // Fallback si la IA se confunde
+                    const fallbackQ = state.lang === 'es' ? "¿Es famoso?" : state.lang === 'en' ? "Is it famous?" : "Est-il célèbre ?";
+                    showQuestion(fallbackQ); 
+                }
+            } catch (e) {
+                console.error(e);
+                els.questionText.textContent = "Error...";
+                els.btnRestart.classList.remove('hidden');
+            }
+        };
+
+        const showQuestion = (text) => {
+            gameHistory.push({ type: 'Q', text: text });
+            els.questionText.textContent = text;
+            els.subText.textContent = translations[state.lang].concentrate;
+            els.answerButtons.classList.remove('hidden');
+            els.inputArea.classList.add('hidden');
+            els.btnRestart.classList.add('hidden');
+        };
+
+        const showGuess = (guess) => {
+            const t = translations[state.lang];
+            // Format: "Je pense à... X" / "I think of... X"
+            const prefix = state.lang === 'es' ? "¡Creo que es..." : state.lang === 'en' ? "I think it is..." : "Je pense que c'est...";
+            
+            const fullText = `${prefix} ${guess}!`;
+            els.questionText.textContent = fullText;
+            els.subText.textContent = "";
+            els.answerButtons.classList.add('hidden'); 
+            els.btnRestart.classList.remove('hidden');
+            
+            playMagic();
+        };
+
+        window.handleAnswer = (ansKey) => {
+            playClick();
+            // Mapeo de respuesta al idioma actual para el historial de la IA
+            const t = translations[state.lang];
+            const map = { yes: t.btn_yes, no: t.btn_no, maybe: t.btn_maybe };
+            
+            gameHistory.push({ type: 'A', text: map[ansKey] });
+            fetchNextStep();
+        };
+
+        window.startGame = () => {
+            navigateTo('game');
+            gameHistory = [];
+            playMagic();
+            
+            // Semilla inicial en el idioma correcto
+            const seedQ = state.lang === 'es' ? "¿Tu personaje es real?" : state.lang === 'en' ? "Is your character real?" : "Votre personnage est-il réel ?";
+            
+            // Simular primer paso sin llamar a la API para ahorrar tiempo
+            showQuestion(seedQ);
+        };
+
+        window.restartGame = () => {
+            playClick();
+            navigateTo('home');
+        };
+
+        window.revealCharacterAndLearn = async () => {
+             playClick();
+             const name = els.characterInput.value;
+             els.questionText.textContent = `OK: ${name}`;
+             els.inputArea.classList.add('hidden');
+             els.btnRestart.classList.remove('hidden');
+        };
+
+        // Init Translations
+        updateTexts();
+
+    </script>
+</body>
+</html>

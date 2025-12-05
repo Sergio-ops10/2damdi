@@ -3,12 +3,50 @@
     <title>2damdi</title>
     <link href="https://sergio-ops10.github.io/2damdi/feed.xml" rel="self" />
     <link href="https://sergio-ops10.github.io/2damdi" />
-    <updated>2025-11-20T10:00:42+01:00</updated>
+    <updated>2025-12-05T11:58:39+01:00</updated>
     <author>
         <name>Sergio López Albuixech</name>
     </author>
     <id>https://sergio-ops10.github.io/2damdi</id>
 
+    <entry>
+        <title>Documentacion app CLON</title>
+        <author>
+            <name>Sergio López Albuixech</name>
+        </author>
+        <link href="https://sergio-ops10.github.io/2damdi/documentacion-app-clon.html"/>
+        <id>https://sergio-ops10.github.io/2damdi/documentacion-app-clon.html</id>
+        <media:content url="https://sergio-ops10.github.io/2damdi/media/posts/5/Captura-de-pantalla-2025-12-05-115247.png" medium="image" />
+
+        <updated>2025-12-05T11:58:39+01:00</updated>
+            <summary>
+                <![CDATA[
+                        <img src="https://sergio-ops10.github.io/2damdi/media/posts/5/Captura-de-pantalla-2025-12-05-115247.png" alt="" />
+                    Muetro el proceso que he tenido que hacer para conseguir esta aplicacion,&hellip;
+                ]]>
+            </summary>
+        <content type="html">
+            <![CDATA[
+                    <p><img src="https://sergio-ops10.github.io/2damdi/media/posts/5/Captura-de-pantalla-2025-12-05-115247.png" class="type:primaryImage" alt="" /></p>
+                <h2>Muetro el proceso que he tenido que hacer para conseguir esta aplicacion, hecha con gemini y con los siguientes prompts:</h2>
+<p> </p>
+<p>Actua como un desarrollador profesional de aplicaciones web y hazme en html, css y javascript una aplicacion que tenga que adivinar con preguntas que me vaya haciendo, el personaje que yo este pensando, tipo Akinator, voy a usar la api de Google gemini;</p>
+<figure class="post__image"><img loading="lazy"  src="https://sergio-ops10.github.io/2damdi/media/posts/5/Captura-de-pantalla-2025-12-05-114721.png" alt="" width="394" height="283" sizes="(max-width: 1024px) 100vw, 1024px" srcset="https://sergio-ops10.github.io/2damdi/media/posts/5/responsive/Captura-de-pantalla-2025-12-05-114721-xs.png 300w ,https://sergio-ops10.github.io/2damdi/media/posts/5/responsive/Captura-de-pantalla-2025-12-05-114721-sm.png 480w ,https://sergio-ops10.github.io/2damdi/media/posts/5/responsive/Captura-de-pantalla-2025-12-05-114721-md.png 768w ,https://sergio-ops10.github.io/2damdi/media/posts/5/responsive/Captura-de-pantalla-2025-12-05-114721-lg.png 1024w"></figure>
+<p> </p>
+<p>Modificame toda la interfaz, que tenga un estilo más encantado, que pueda iniciar sesion, un apartad de ajustes, para añadir efectos de sonido o quitarlos, y que pueda cambiar el idioma entre español, ingles y frances</p>
+<p>Tambien el pedi a Gemini que me haga un imagen de un genio para que la ponga en el medio de la pantalla como logotipo:</p>
+<div class="gallery-wrapper gallery-wrapper--wide"><div class="gallery"  data-is-empty="false" data-translation="Add images" data-columns="2">
+<figure class="gallery__item"><a href="https://sergio-ops10.github.io/2damdi/media/posts/5/gallery/Captura-de-pantalla-2025-12-05-115125.png" data-size="515x538"><img loading="lazy" src="https://sergio-ops10.github.io/2damdi/media/posts/5/gallery/Captura-de-pantalla-2025-12-05-115125-thumbnail.png" alt="" width="515" height="538"></a></figure>
+<figure class="gallery__item"><a href="https://sergio-ops10.github.io/2damdi/media/posts/5/gallery/Captura-de-pantalla-2025-12-05-115247.png" data-size="1918x927"><img loading="lazy" src="https://sergio-ops10.github.io/2damdi/media/posts/5/gallery/Captura-de-pantalla-2025-12-05-115247-thumbnail.png" alt="" width="768" height="371"></a></figure>
+</div></div>
+<figure class="post__image"><img loading="lazy"  src="https://sergio-ops10.github.io/2damdi/media/posts/5/Captura-de-pantalla-2025-12-05-115153-2.png" alt="" width="744" height="88" sizes="(max-width: 1024px) 100vw, 1024px" srcset="https://sergio-ops10.github.io/2damdi/media/posts/5/responsive/Captura-de-pantalla-2025-12-05-115153-2-xs.png 300w ,https://sergio-ops10.github.io/2damdi/media/posts/5/responsive/Captura-de-pantalla-2025-12-05-115153-2-sm.png 480w ,https://sergio-ops10.github.io/2damdi/media/posts/5/responsive/Captura-de-pantalla-2025-12-05-115153-2-md.png 768w ,https://sergio-ops10.github.io/2damdi/media/posts/5/responsive/Captura-de-pantalla-2025-12-05-115153-2-lg.png 1024w"></figure>
+<p> </p>
+<p>Lugar del codigo donde implemento la api, </p>
+<figure class="post__image post__image--wide"><img loading="lazy"  src="https://sergio-ops10.github.io/2damdi/media/posts/5/Captura-de-pantalla-2025-12-05-115558.png" alt="" width="1003" height="70" sizes="(max-width: 1024px) 100vw, 1024px" srcset="https://sergio-ops10.github.io/2damdi/media/posts/5/responsive/Captura-de-pantalla-2025-12-05-115558-xs.png 300w ,https://sergio-ops10.github.io/2damdi/media/posts/5/responsive/Captura-de-pantalla-2025-12-05-115558-sm.png 480w ,https://sergio-ops10.github.io/2damdi/media/posts/5/responsive/Captura-de-pantalla-2025-12-05-115558-md.png 768w ,https://sergio-ops10.github.io/2damdi/media/posts/5/responsive/Captura-de-pantalla-2025-12-05-115558-lg.png 1024w"></figure>
+<p> </p>
+            ]]>
+        </content>
+    </entry>
     <entry>
         <title>Docuentacion Guia de Coches</title>
         <author>
