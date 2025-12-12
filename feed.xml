@@ -3,7 +3,7 @@
     <title>2damdi</title>
     <link href="https://sergio-ops10.github.io/2damdi/feed.xml" rel="self" />
     <link href="https://sergio-ops10.github.io/2damdi" />
-    <updated>2025-12-12T11:48:43+01:00</updated>
+    <updated>2025-12-12T11:51:51+01:00</updated>
     <author>
         <name>Sergio López Albuixech</name>
     </author>
@@ -14,17 +14,20 @@
         <author>
             <name>Sergio López Albuixech</name>
         </author>
-        <link href="https://sergio-ops10.github.io/2damdi/.html"/>
-        <id>https://sergio-ops10.github.io/2damdi/.html</id>
+        <link href="https://sergio-ops10.github.io/2damdi/documentacion-app-visor-de-documentos.html"/>
+        <id>https://sergio-ops10.github.io/2damdi/documentacion-app-visor-de-documentos.html</id>
+        <media:content url="https://sergio-ops10.github.io/2damdi/media/posts/6/Captura-de-pantalla-2025-12-12-115140.png" medium="image" />
 
         <updated>2025-12-12T11:08:41+01:00</updated>
             <summary>
                 <![CDATA[
+                        <img src="https://sergio-ops10.github.io/2damdi/media/posts/6/Captura-de-pantalla-2025-12-12-115140.png" alt="" />
                     Muetro el proceso que he tenido que hacer para conseguir esta aplicacion,&hellip;
                 ]]>
             </summary>
         <content type="html">
             <![CDATA[
+                    <p><img src="https://sergio-ops10.github.io/2damdi/media/posts/6/Captura-de-pantalla-2025-12-12-115140.png" class="type:primaryImage" alt="" /></p>
                 <h2>Muetro el proceso que he tenido que hacer para conseguir esta aplicacion, hecha con gemini y con los siguientes prompts:</h2>
 <p> </p>
 <p class="query-text-line ng-star-inserted">Actua como un experto en programador de aplicaciones web en html, css, y javascript para Crear una aplicación que podamos subirle un archivo de tipo:</p>
