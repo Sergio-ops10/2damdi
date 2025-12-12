@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visor Universal Pro - Responsive y Pestañas</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Marked.js para Markdown -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+    <!-- PDF.js para documentos PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+    <!-- JSZip para archivos comprimidos (.zip) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+    <!-- Prism.js para Resaltado de Sintaxis -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    
+    <style>
+        /* Variables de Tema */
+        :root {
+            --primary: #2563eb;       
+            --primary-hover: #1d4ed8; 
+            --bg-app: #f3f4f6;        
+            --bg-panel: #ffffff;      
+            --text-main: #1f2937;     
+            --primary-light: color-mix(in srgb, var(--primary), white 90%);
+        }
+
+        body { background-color: var(--bg-app); color: var(--text-main); }
+
+        /* Estilos PDF */
+        .pdf-page {
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+            margin-left: auto;
+            margin-right: auto;
+            max-width: 100%; /* Asegura que el canvas no exceda el contenedor */
+            height: auto;
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+
+        /* Markdown Styles */
+        .markdown-body { padding: 1.5rem 1rem; } /* Menos padding en móvil */
+        .markdown-body h1 { font-size: 2em; font-weight: bold; margin-bottom: 0.5em; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.3em; }
+        .markdown-body h2 { font-size: 1.5em; font-weight: bold; margin-top: 1em; margin-bottom: 0.5em; }
+        .markdown-body ul { list-style-type: disc; padding-left: 1.5em; margin-bottom: 1em; }
+        .markdown-body pre { background: transparent !important; padding: 0 !important; margin: 0 !important; }
+        
+        /* Loader */
+        .loader {
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Helpers Dinámicos */
+        .file-item.active { background-color: var(--primary-light); border-left-color: var(--primary); }
+        .bg-theme-panel { background-color: var(--bg-panel); }
+        .bg-theme-primary { background-color: var(--primary); }
+        .text-theme-primary { color: var(--primary); }
+        .border-theme-primary { border-color: var(--primary); }
+        .hover-bg-theme-light:hover { background-color: var(--primary-light); }
+        .hover-text-theme-primary:hover { color: var(--primary); }
+
+        /* Editor Styles */
+        #editor-textarea {
+            font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+            line-height: 1.5;
+            tab-size: 4;
+        }
+        
+        /* Tab Styles: Ocultar scrollbar en contenedor de pestañas */
+        #tabs-container {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        #tabs-container::-webkit-scrollbar {
+            display: none;
+        }
+        .shadow-t {
+            box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.05), 0 -2px 4px -2px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+    
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        
+        // Iconos
+        const ICONS = {
+            upload: `<svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48"><path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>`,
+            file: `<svg class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>`,
+            trash: `<svg class="h-4 w-4 text-red-400 hover:text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>`,
+            plus: `<svg class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>`,
+            image: `<svg class="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 16m-2-2L14 10m-2 2v6m-4-6h8m-4-8a4 4 0 110 8 4 4 0 010-8z" /></svg>`,
+            zip: `<svg class="h-5 w-5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m2-15H7a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-3.586a1 1 0 01-.707-.293l-1.414-1.414a1 1 0 00-.707-.293z" /></svg>`,
+            video: `<svg class="h-5 w-5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14v-4zm-2 5.5a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" /></svg>`,
+            audio: `<svg class="h-5 w-5 text-pink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" /></svg>`,
+            folder: `<svg class="h-5 w-5 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" /></svg>`,
+            download: `<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>`,
+            settings: `<svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>`,
+            edit: `<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>`,
+            info: `<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`,
+            save: `<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>`,
+            cancel: `<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>`,
+            search: `<svg class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>`,
+            close: `<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>`,
+            menu: `<svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>`,
+        };
+    </script>
+</head>
+<body class="h-screen flex flex-col overflow-hidden font-sans">
+
+    <!-- Header -->
+    <nav class="bg-theme-panel shadow-sm border-b border-gray-200 z-50 flex-shrink-0 transition-colors duration-300">
+        <div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-14 items-center">
+                <div class="flex items-center gap-2">
+                    <!-- Botón de Toggle para Sidebar en móvil -->
+                    <button id="sidebar-toggle" class="md:hidden p-2 rounded-full hover:bg-gray-100 text-gray-700" aria-label="Toggle Sidebar">
+                        <!-- Icono Menu (Hamburger) -->
+                        <span id="menu-icon"></span>
+                    </button>
+                    <span class="bg-theme-primary text-white p-1 rounded transition-colors duration-300 hidden sm:block">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                        </svg>
+                    </span>
+                    <span class="font-bold text-lg text-gray-800">LectorPro Universal</span>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <div class="text-xs text-gray-500 hidden md:block">
+                        Arrastra PDF, JSON, Audio, Video, Código...
+                    </div>
+                    <button id="settings-btn" class="text-gray-500 hover:text-gray-700 hover-text-theme-primary p-2 rounded-full hover:bg-gray-100 transition-colors" title="Ajustes de Tema">
+                        <!-- Icon injected -->
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Workspace -->
+    <div class="flex flex-1 overflow-hidden relative">
+        
+        <!-- Mobile Sidebar Backdrop -->
+        <div id="sidebar-backdrop" class="fixed inset-0 bg-black bg-opacity-50 z-30 transition-opacity duration-300 md:hidden hidden"></div>
+
+        <!-- Estado Inicial -->
+        <div id="initial-state" class="absolute inset-0 z-20 flex flex-col items-center justify-center p-4 sm:p-8 transition-opacity duration-300">
+            <div id="initial-drop-zone" class="w-full max-w-lg sm:max-w-2xl h-80 bg-theme-panel rounded-2xl border-4 border-dashed border-gray-300 flex flex-col justify-center items-center hover:border-theme-primary transition-all cursor-pointer group shadow-sm p-4">
+                <div id="upload-icon-lg" class="mb-4 transform group-hover:scale-110 transition-transform duration-200"></div>
+                <h2 class="text-xl sm:text-2xl font-bold text-gray-700 mb-2 text-center">Arrastra tus archivos aquí</h2>
+                <p class="text-gray-500 mb-6 text-sm sm:text-base text-center">o haz clic para seleccionar</p>
+                <span class="px-4 py-2 bg-theme-primary text-white rounded-full text-sm font-medium shadow-md transition-colors hover:opacity-90">Seleccionar Archivos</span>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <!-- Responsive classes: fixed and hidden on mobile, relative and visible on desktop -->
+        <aside id="sidebar" class="w-64 sm:w-72 bg-theme-panel border-r border-gray-200 flex flex-col transition-transform duration-300 fixed md:relative h-full z-40 md:z-10 -translate-x-full md:translate-x-0">
+            <!-- Header Sidebar + Buscador -->
+            <div class="p-4 border-b border-gray-100 bg-gray-50/50 flex flex-col gap-3 flex-shrink-0">
+                <div class="flex justify-between items-center">
+                    <h3 class="font-semibold text-gray-700 text-sm uppercase tracking-wide">Archivos</h3>
+                    <span id="file-count" class="bg-gray-200 text-gray-600 text-xs px-2 py-0.5 rounded-full">0</span>
+                </div>
+                <!-- Barra de búsqueda -->
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <span id="search-icon"></span>
+                    </div>
+                    <input type="text" id="search-input" class="block w-full pl-9 pr-3 py-1.5 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-400 focus:outline-none focus:placeholder-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-xs transition duration-150 ease-in-out" placeholder="Filtrar archivos...">
+                </div>
+            </div>
+            
+            <div id="file-list" class="flex-1 overflow-y-auto p-2 space-y-1">
+                <!-- Items -->
+            </div>
+
+            <div class="p-3 border-t border-gray-200 bg-gray-50/50 flex-shrink-0">
+                <button id="add-more-btn" class="w-full flex items-center justify-center px-4 py-2 border border-theme-primary text-theme-primary rounded hover-bg-theme-light text-sm font-medium transition-colors">
+                    <span id="plus-icon"></span> Agregar más
+                </button>
+            </div>
+        </aside>
+
+        <!-- Viewer -->
+        <main id="main-view" class="flex-1 relative flex flex-col min-w-0 hidden">
+            
+            <!-- Toolbar del Visor -->
+            <div id="viewer-toolbar" class="bg-gray-100/70 border-b border-gray-200 p-0 flex justify-between items-center h-12 shadow-sm hidden transition-colors duration-300 flex-shrink-0">
+                
+                <!-- Tab Container -->
+                <!-- Asegura scroll horizontal en móvil -->
+                <div id="tabs-container" class="flex items-center overflow-x-auto min-w-0 h-full flex-1 border-b border-gray-200" style="scrollbar-width: none;">
+                    <!-- Tabs will go here -->
+                </div>
+
+                <!-- Acciones del Visor -->
+                <div class="flex items-center gap-2 flex-shrink-0 ml-4 p-2 bg-theme-panel h-full border-l border-gray-200">
+                    <div id="viewer-loader" class="loader hidden mr-2"></div>
+                    
+                    <!-- Botones de Acción -->
+                    <button id="edit-btn" class="text-gray-500 hover:text-blue-600 p-1.5 rounded-full hover:bg-gray-100 hidden" title="Editar Archivo">
+                        <!-- Icono Edit -->
+                    </button>
+                    <button id="info-btn" class="text-gray-500 hover:text-blue-600 p-1.5 rounded-full hover:bg-gray-100 hidden" title="Información">
+                        <!-- Icono Info -->
+                    </button>
+                    
+                    <!-- Acciones Modo Edición (Ocultas por defecto) -->
+                    <div id="edit-actions" class="hidden flex items-center gap-2">
+                        <button id="cancel-edit-btn" class="text-gray-500 hover:text-red-600 px-2 py-1 rounded text-sm hover:bg-red-50 flex items-center gap-1 border border-transparent">
+                            Cancelar
+                        </button>
+                        <button id="save-edit-btn" class="bg-blue-600 text-white hover:bg-blue-700 px-2 py-1 rounded text-sm flex items-center gap-1 shadow-sm transition-colors">
+                            Guardar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div id="empty-viewer" class="flex-1 flex flex-col items-center justify-center text-gray-400 p-4">
+                <svg class="h-16 w-16 mb-4 opacity-20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                <p class="text-center">Selecciona un archivo de la lista para visualizarlo</p>
+            </div>
+
+            <!-- Content Area -->
+            <div id="content-area" class="flex-1 overflow-auto p-0 relative hidden bg-gray-50/50">
+                <!-- Text / Code Container -->
+                <div id="text-content" class="hidden p-4 sm:p-6 min-h-full"></div>
+                
+                <!-- Editor Container -->
+                <div id="editor-container" class="hidden h-full flex flex-col bg-white">
+                    <textarea id="editor-textarea" class="flex-1 w-full h-full p-4 sm:p-6 border-none resize-none focus:outline-none text-sm text-gray-800 bg-gray-50" spellcheck="false"></textarea>
+                </div>
+
+                <!-- Markdown Container: max-w-4xl for readability -->
+                <div id="markdown-content" class="hidden markdown-body bg-theme-panel shadow-sm rounded md:max-w-4xl mx-auto my-4 border border-gray-100 w-[calc(100%-2rem)] sm:w-[calc(100%-4rem)]"></div>
+                
+                <!-- Media Containers -->
+                <div id="pdf-content" class="hidden flex flex-col items-center gap-6 p-4 sm:p-6 pb-10"></div>
+                <div id="img-content" class="hidden flex justify-center items-center p-4 sm:p-6 h-full"></div>
+                <div id="video-content" class="hidden flex justify-center items-center p-4 sm:p-6 h-full"></div>
+                <div id="audio-content" class="hidden flex justify-center items-center p-4 sm:p-6 h-full"></div>
+                
+                <!-- ZIP Container -->
+                <div id="zip-content" class="hidden bg-theme-panel p-4 sm:p-6 shadow rounded m-4 sm:m-6"></div>
+                
+                <!-- Error -->
+                <div id="error-content" class="hidden m-4 sm:m-6 bg-red-50 text-red-600 p-4 rounded border border-red-200 text-center"></div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Modals -->
+    
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-50 flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm">
+            <div class="flex justify-between items-center p-5 border-b border-gray-100">
+                <h3 class="font-bold text-gray-800 text-lg">Configuración</h3>
+                <button id="close-settings" class="text-gray-400 hover:text-gray-600"><svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
+            </div>
+            <div class="p-6 space-y-6">
+                <!-- Color Inputs -->
+                <div class="flex justify-between items-center"><label class="text-sm font-medium text-gray-700">Color Principal</label><input type="color" id="color-primary" value="#2563eb"></div>
+                <div class="flex justify-between items-center"><label class="text-sm font-medium text-gray-700">Color Fondo</label><input type="color" id="color-bg" value="#f3f4f6"></div>
+                <div class="flex justify-between items-center"><label class="text-sm font-medium text-gray-700">Color Panel</label><input type="color" id="color-panel" value="#ffffff"></div>
+                <button id="reset-theme" class="w-full py-2 text-sm border rounded hover:bg-gray-50 mt-4">Restaurar Defaults</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Info Modal -->
+    <div id="info-modal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-50 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden">
+            <div class="bg-gray-50 p-5 border-b border-gray-100 flex items-center justify-between">
+                <h3 class="font-bold text-gray-800">Detalles del Archivo</h3>
+                <button id="close-info" class="text-gray-400 hover:text-gray-600"><svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
+            </div>
+            <div class="p-6 space-y-4">
+                <div><label class="text-xs font-bold text-gray-400 uppercase">Nombre</label><p id="info-name" class="text-sm font-medium text-gray-800 break-all">--</p></div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="text-xs font-bold text-gray-400 uppercase">Tipo</label><p id="info-type" class="text-sm text-gray-600">--</p></div>
+                    <div><label class="text-xs font-bold text-gray-400 uppercase">Tamaño</label><p id="info-size" class="text-sm text-gray-600">--</p></div>
+                </div>
+                <div><label class="text-xs font-bold text-gray-400 uppercase">Última Modificación</label><p id="info-date" class="text-sm text-gray-600">--</p></div>
+                <div id="info-extra-container" class="hidden border-t pt-3 mt-2">
+                    <label class="text-xs font-bold text-gray-400 uppercase">Dimensiones / Duración</label>
+                    <p id="info-extra" class="text-sm text-gray-600">--</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <input type="file" id="file-input" class="hidden" multiple accept="*/*" />
+
+    <script>
+        // --- UI Referencias ---
+        const ui = {
+            initialState: document.getElementById('initial-state'),
+            initialDropZone: document.getElementById('initial-drop-zone'),
+            sidebar: document.getElementById('sidebar'),
+            sidebarBackdrop: document.getElementById('sidebar-backdrop'), // Nuevo
+            mainView: document.getElementById('main-view'),
+            fileList: document.getElementById('file-list'),
+            fileInput: document.getElementById('file-input'),
+            addMoreBtn: document.getElementById('add-more-btn'),
+            fileCountEl: document.getElementById('file-count'),
+            searchInput: document.getElementById('search-input'),
+            sidebarToggle: document.getElementById('sidebar-toggle'), // Nuevo
+            
+            // Viewer
+            toolbar: document.getElementById('viewer-toolbar'),
+            contentArea: document.getElementById('content-area'),
+            emptyViewer: document.getElementById('empty-viewer'),
+            loader: document.getElementById('viewer-loader'),
+            
+            // Pestañas
+            tabsContainer: document.getElementById('tabs-container'),
+            
+            // Botones Toolbar
+            editBtn: document.getElementById('edit-btn'),
+            infoBtn: document.getElementById('info-btn'),
+            editActions: document.getElementById('edit-actions'),
+            saveEditBtn: document.getElementById('save-edit-btn'),
+            cancelEditBtn: document.getElementById('cancel-edit-btn'),
+
+            // Modals
+            settingsBtn: document.getElementById('settings-btn'),
+            settingsModal: document.getElementById('settings-modal'),
+            closeSettings: document.getElementById('close-settings'),
+            infoModal: document.getElementById('info-modal'),
+            closeInfo: document.getElementById('close-info'),
+
+            // Contenidos
+            textContent: document.getElementById('text-content'),
+            editorContainer: document.getElementById('editor-container'),
+            editorTextarea: document.getElementById('editor-textarea'),
+            markdownContent: document.getElementById('markdown-content'),
+            pdfContent: document.getElementById('pdf-content'),
+            imgContent: document.getElementById('img-content'),
+            videoContent: document.getElementById('video-content'),
+            audioContent: document.getElementById('audio-content'),
+            zipContent: document.getElementById('zip-content'),
+            errorContent: document.getElementById('error-content'),
+            
+            // Info Fields
+            infoName: document.getElementById('info-name'),
+            infoType: document.getElementById('info-type'),
+            infoSize: document.getElementById('info-size'),
+            infoDate: document.getElementById('info-date'),
+            infoExtra: document.getElementById('info-extra'),
+            infoExtraContainer: document.getElementById('info-extra-container'),
+        };
+
+        // --- Iconos Init ---
+        document.getElementById('upload-icon-lg').innerHTML = ICONS.upload;
+        document.getElementById('plus-icon').innerHTML = ICONS.plus;
+        document.getElementById('search-icon').innerHTML = ICONS.search;
+        document.getElementById('menu-icon').innerHTML = ICONS.menu; // Nuevo icono
+        ui.settingsBtn.innerHTML = ICONS.settings;
+        ui.editBtn.innerHTML = ICONS.edit;
+        ui.infoBtn.innerHTML = ICONS.info;
+        ui.saveEditBtn.innerHTML = ICONS.save + ' Guardar';
+        ui.cancelEditBtn.innerHTML = ICONS.cancel + ' Cancelar';
+
+        // --- Estado Global ---
+        let state = {
+            files: [],
+            openTabs: [],
+            currentTabId: null,
+            filter: '',
+            isEditing: false,
+            isSidebarOpen: false
+        };
+
+        // --- Event Listeners ---
+        
+        // Mobile Sidebar Toggle
+        ui.sidebarToggle.addEventListener('click', toggleSidebar);
+        ui.sidebarBackdrop.addEventListener('click', () => toggleSidebar(false));
+
+        // Drag & Drop
+        setupDragDrop(ui.initialDropZone);
+        ui.initialDropZone.addEventListener('click', () => ui.fileInput.click());
+        document.body.addEventListener('dragover', e => e.preventDefault());
+        document.body.addEventListener('drop', e => {
+            e.preventDefault();
+            if (e.dataTransfer.files.length) handleFiles(e.dataTransfer.files);
+        });
+        
+        // Inputs & Botones
+        ui.addMoreBtn.addEventListener('click', () => ui.fileInput.click());
+        ui.fileInput.addEventListener('change', e => {
+            if (e.target.files.length) handleFiles(e.target.files);
+            ui.fileInput.value = '';
+        });
+        
+        // Buscador
+        ui.searchInput.addEventListener('input', (e) => {
+            state.filter = e.target.value.toLowerCase();
+            renderFileList();
+        });
+
+        // Edición
+        ui.editBtn.addEventListener('click', startEditing);
+        ui.cancelEditBtn.addEventListener('click', stopEditing);
+        ui.saveEditBtn.addEventListener('click', saveEditing);
+
+        // Info Modal
+        ui.infoBtn.addEventListener('click', showInfo);
+        ui.closeInfo.addEventListener('click', () => ui.infoModal.classList.add('hidden'));
+
+        // Settings Modal
+        ui.settingsBtn.addEventListener('click', () => ui.settingsModal.classList.remove('hidden'));
+        ui.closeSettings.addEventListener('click', () => ui.settingsModal.classList.add('hidden'));
+        setupThemeColors();
+        
+        // Manejar resize para cerrar sidebar si pasa a desktop
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 768) { // md breakpoint in Tailwind
+                toggleSidebar(false);
+            }
+        });
+
+
+        // --- Lógica de Sidebar ---
+
+        function toggleSidebar(force) {
+            state.isSidebarOpen = (typeof force === 'boolean') ? force : !state.isSidebarOpen;
+            
+            if (state.isSidebarOpen) {
+                ui.sidebar.classList.remove('-translate-x-full');
+                ui.sidebarBackdrop.classList.remove('hidden');
+                document.body.style.overflow = 'hidden'; // Evitar scroll de fondo
+            } else {
+                ui.sidebar.classList.add('-translate-x-full');
+                ui.sidebarBackdrop.classList.add('hidden');
+                document.body.style.overflow = '';
+            }
+        }
+
+
+        // --- Lógica de Archivos ---
+
+        function handleFiles(fileList) {
+            const newFiles = Array.from(fileList).map(file => ({
+                id: Math.random().toString(36).substr(2, 9),
+                file: file,
+                name: file.name,
+                size: file.size,
+                type: detectType(file),
+                lastModified: file.lastModified,
+                content: null // Cache de contenido de texto/json/md
+            }));
+            
+            state.files = [...state.files, ...newFiles];
+            updateUI();
+            if (!state.currentTabId && newFiles.length) selectFile(newFiles[0].id);
+        }
+
+        function updateUI() {
+            if (state.files.length) {
+                ui.initialState.classList.add('hidden');
+                // La sidebar ya no tiene 'hidden' en desktop, solo se maneja por transform
+                ui.mainView.classList.remove('hidden');
+                ui.fileCountEl.textContent = state.files.length;
+                renderFileList();
+                renderTabs();
+            } else {
+                ui.initialState.classList.remove('hidden');
+                ui.mainView.classList.add('hidden');
+                state.currentTabId = null;
+                // Asegurar que la sidebar esté oculta si no hay archivos (en mobile)
+                toggleSidebar(false);
+            }
+        }
+
+        function renderFileList() {
+            ui.fileList.innerHTML = '';
+            const filtered = state.files.filter(f => f.name.toLowerCase().includes(state.filter));
+            
+            filtered.forEach(item => {
+                const div = document.createElement('div');
+                const isActive = item.id === state.currentTabId;
+                div.className = `file-item flex items-center justify-between p-3 rounded cursor-pointer border-l-4 transition-colors mb-1 ${isActive ? 'active' : 'border-transparent hover-bg-theme-light'}`;
+                
+                div.innerHTML = `
+                    <div class="flex items-center overflow-hidden flex-1" onclick="selectFile('${item.id}'); toggleSidebar(false);">
+                        <div class="text-gray-400 mr-3 flex-shrink-0 ${isActive ? 'text-theme-primary' : ''}">${getIcon(item.type)}</div>
+                        <div class="overflow-hidden">
+                            <p class="text-sm font-medium text-gray-700 truncate">${item.name}</p>
+                            <p class="text-xs text-gray-400">${formatBytes(item.size)}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-1 flex-shrink-0 ml-2">
+                        <button class="text-gray-300 hover:text-blue-600 hover-text-theme-primary p-1.5 rounded" onclick="downloadFile('${item.id}', event)">${ICONS.download}</button>
+                        <button class="text-gray-300 hover:text-red-500 p-1.5 rounded" onclick="deleteFile('${item.id}', event)">${ICONS.trash}</button>
+                    </div>
+                `;
+                ui.fileList.appendChild(div);
+            });
+        }
+
+        function selectFile(id) {
+            const fileItem = state.files.find(f => f.id === id);
+            if (!fileItem) return;
+            
+            if (state.openTabs.includes(id)) {
+                switchTab(id);
+            } else {
+                state.openTabs.push(id);
+                switchTab(id);
+            }
+        }
+
+        // --- Lógica de Pestañas ---
+
+        function renderTabs() {
+            ui.tabsContainer.innerHTML = '';
+            
+            if (state.openTabs.length === 0) {
+                ui.toolbar.classList.add('hidden');
+                ui.emptyViewer.classList.remove('hidden');
+                ui.contentArea.classList.add('hidden');
+                return;
+            }
+            
+            ui.toolbar.classList.remove('hidden');
+            ui.emptyViewer.classList.add('hidden');
+            ui.contentArea.classList.remove('hidden');
+            
+            state.openTabs.forEach(id => {
+                const fileItem = state.files.find(f => f.id === id);
+                if (!fileItem) return;
+
+                const isActive = id === state.currentTabId;
+                const tabEl = document.createElement('button');
+                tabEl.id = `tab-${id}`;
+                // Clases responsive para tabs: usan flex-shrink-0, texto pequeño y truncado
+                tabEl.className = `flex items-center px-3 py-1 text-xs rounded-t-lg transition-all border-b-2 font-medium flex-shrink-0 whitespace-nowrap overflow-hidden h-full mr-0.5 ${
+                    isActive 
+                        ? 'bg-theme-panel text-theme-primary border-theme-primary shadow-t' 
+                        : 'bg-gray-200/70 text-gray-600 border-gray-200 hover:bg-gray-200'
+                }`;
+                tabEl.onclick = () => switchTab(id);
+                
+                tabEl.innerHTML = `
+                    <span class="mr-1 sm:mr-2 flex-shrink-0">${getIcon(fileItem.type)}</span>
+                    <span class="truncate max-w-[80px] sm:max-w-[150px]">${fileItem.name}</span>
+                    <button class="ml-2 p-0.5 rounded-full hover:bg-gray-300 transition-colors flex-shrink-0 ${isActive ? 'text-gray-600' : 'text-gray-400'}" onclick="closeTab('${id}', event)">
+                        ${ICONS.close}
+                    </button>
+                `;
+                
+                ui.tabsContainer.appendChild(tabEl);
+            });
+            
+            setTimeout(() => {
+                const activeTabEl = document.getElementById(`tab-${state.currentTabId}`);
+                if (activeTabEl) {
+                    activeTabEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                }
+            }, 0);
+        }
+
+        function switchTab(id) {
+            if (id === state.currentTabId) return;
+            if (state.isEditing) stopEditing();
+            
+            state.currentTabId = id;
+            
+            renderTabs();
+            renderContentForTab(id);
+            renderFileList();
+        }
+
+        function closeTab(id, e) {
+            e.stopPropagation();
+            const index = state.openTabs.indexOf(id);
+            if (index > -1) {
+                state.openTabs.splice(index, 1);
+                
+                if (id === state.currentTabId) {
+                    if (state.openTabs.length > 0) {
+                        const newId = state.openTabs[Math.max(0, index - 1)];
+                        switchTab(newId);
+                    } else {
+                        state.currentTabId = null;
+                        hideAllContent();
+                        ui.toolbar.classList.add('hidden');
+                        ui.emptyViewer.classList.remove('hidden');
+                        ui.contentArea.classList.add('hidden');
+                    }
+                }
+                
+                renderTabs();
+            }
+        }
+
+        function updateToolbarActions() {
+            const fileItem = state.files.find(f => f.id === state.currentTabId);
+            if (!fileItem) {
+                ui.editBtn.classList.add('hidden');
+                ui.infoBtn.classList.add('hidden');
+                ui.editActions.classList.add('hidden');
+                return;
+            }
+            
+            ui.infoBtn.classList.remove('hidden');
+
+            const canEdit = ['text', 'json', 'markdown'].includes(fileItem.type);
+            canEdit && !state.isEditing ? ui.editBtn.classList.remove('hidden') : ui.editBtn.classList.add('hidden');
+        }
+
+
+        function renderContentForTab(id) {
+            const fileItem = state.files.find(f => f.id === id);
+            if (!fileItem) return;
+
+            hideAllContent();
+            ui.loader.classList.remove('hidden');
+            
+            updateToolbarActions();
+
+            if (fileItem.content !== null && ['json', 'markdown', 'text'].includes(fileItem.type)) {
+                ui.loader.classList.add('hidden');
+                renderText(fileItem.content, fileItem);
+                return;
+            }
+
+            setTimeout(() => loadFileContent(fileItem), 50);
+        }
+
+        function loadFileContent(fileItem) {
+            const reader = new FileReader();
+            
+            reader.onerror = () => { ui.loader.classList.add('hidden'); showError("Error de lectura."); };
+
+            const renderIfActive = (renderFunc, ...args) => {
+                if (fileItem.id === state.currentTabId) {
+                    renderFunc(...args);
+                }
+                ui.loader.classList.add('hidden');
+            };
+
+            if (['json', 'markdown', 'text'].includes(fileItem.type)) {
+                reader.onload = (e) => {
+                    fileItem.content = e.target.result;
+                    renderIfActive(renderText, e.target.result, fileItem);
+                };
+                reader.readAsText(fileItem.file);
+            }
+            else if (fileItem.type === 'pdf') {
+                reader.onload = (e) => renderIfActive(renderPDF, e.target.result);
+                reader.readAsArrayBuffer(fileItem.file);
+            }
+            else if (fileItem.type === 'image') {
+                reader.onload = (e) => renderIfActive(renderImage, e.target.result);
+                reader.readAsDataURL(fileItem.file);
+            }
+            else if (fileItem.type === 'video') {
+                reader.onload = (e) => renderIfActive(renderVideo, e.target.result, fileItem.file.type);
+                reader.readAsDataURL(fileItem.file);
+            }
+            else if (fileItem.type === 'audio') {
+                reader.onload = (e) => renderIfActive(renderAudio, e.target.result, fileItem.file.type);
+                reader.readAsDataURL(fileItem.file);
+            }
+            else if (fileItem.type === 'zip') {
+                reader.onload = (e) => renderIfActive(renderZip, e.target.result, fileItem.name);
+                reader.readAsArrayBuffer(fileItem.file);
+            }
+            else {
+                ui.loader.classList.add('hidden');
+                showError("Vista previa no disponible para este tipo.");
+            }
+        }
+
+        // --- Renderizadores ---
+
+        function renderText(content, item) {
+            ui.loader.classList.add('hidden');
+            
+            if (item.type === 'json') {
+                try {
+                    const json = JSON.parse(content);
+                    const formatted = JSON.stringify(json, null, 4);
+                    ui.textContent.innerHTML = `<pre class="rounded-lg shadow-sm overflow-x-auto"><code class="language-json">${escapeHtml(formatted)}</code></pre>`;
+                    ui.textContent.classList.remove('hidden');
+                    Prism.highlightAllUnder(ui.textContent);
+                } catch {
+                    ui.textContent.textContent = content;
+                    ui.textContent.classList.remove('hidden');
+                }
+            } else if (item.type === 'markdown') {
+                ui.markdownContent.innerHTML = marked.parse(content);
+                ui.markdownContent.classList.remove('hidden');
+                Prism.highlightAllUnder(ui.markdownContent);
+            } else {
+                const ext = item.name.split('.').pop();
+                const langMap = {'js':'javascript', 'html':'html', 'css':'css', 'py':'python', 'java':'java', 'c':'c'};
+                const lang = langMap[ext] || 'none';
+                
+                if (lang !== 'none') {
+                    ui.textContent.innerHTML = `<pre class="rounded-lg shadow-sm overflow-x-auto"><code class="language-${lang}">${escapeHtml(content)}</code></pre>`;
+                    Prism.highlightAllUnder(ui.textContent);
+                } else {
+                    ui.textContent.innerHTML = `<pre class="whitespace-pre-wrap font-mono text-sm">${escapeHtml(content)}</pre>`;
+                }
+                ui.textContent.classList.remove('hidden');
+            }
+        }
+
+        function renderAudio(url, mime) {
+            ui.loader.classList.add('hidden');
+            ui.audioContent.innerHTML = `
+                <div class="bg-white p-8 rounded-xl shadow-lg flex flex-col items-center gap-4 w-full max-w-sm sm:max-w-md">
+                    <div class="w-20 h-20 bg-pink-100 rounded-full flex items-center justify-center text-pink-500 mb-2">
+                        ${ICONS.audio.replace('h-5 w-5', 'w-10 h-10')}
+                    </div>
+                    <audio controls class="w-full">
+                        <source src="${url}" type="${mime}">
+                        Tu navegador no soporta audio.
+                    </audio>
+                </div>`;
+            ui.audioContent.classList.remove('hidden');
+        }
+
+        function renderImage(url) {
+            ui.loader.classList.add('hidden');
+            ui.imgContent.innerHTML = `<img src="${url}" class="max-h-full max-w-full rounded shadow-lg object-contain">`;
+            ui.imgContent.classList.remove('hidden');
+        }
+
+        function renderVideo(url, mime) {
+            ui.loader.classList.add('hidden');
+            // Usar w-full y max-w-4xl para el control responsive
+            ui.videoContent.innerHTML = `<div class="w-full max-w-4xl"><video controls class="w-full h-auto rounded shadow-lg"><source src="${url}" type="${mime}"></video></div>`;
+            ui.videoContent.classList.remove('hidden');
+        }
+
+        async function renderZip(buffer, name) {
+            try {
+                const zip = await JSZip.loadAsync(buffer);
+                let html = `<h3 class="text-xl font-bold mb-4 text-gray-700">Contenido ZIP: ${name}</h3><ul class="space-y-2 text-sm">`;
+                // Mostrar solo los primeros 50 archivos
+                Object.keys(zip.files).slice(0, 50).forEach(path => {
+                    const isDir = zip.files[path].dir;
+                    html += `<li class="flex items-center ${isDir ? 'text-theme-primary font-bold' : 'text-gray-600'}">
+                        ${isDir ? ICONS.folder : `<span class="text-gray-400 mr-2">${ICONS.file}</span>`} <span class="ml-2 truncate">${path}</span>
+                    </li>`;
+                });
+                html += `</ul>`;
+                if (Object.keys(zip.files).length > 50) {
+                    html += `<p class="mt-4 text-xs text-gray-500">...y ${Object.keys(zip.files).length - 50} archivos más.</p>`;
+                }
+                ui.zipContent.innerHTML = html;
+                ui.zipContent.classList.remove('hidden');
+            } catch { showError("Error al leer ZIP"); }
+            ui.loader.classList.add('hidden');
+        }
+
+        async function renderPDF(buffer) {
+            try {
+                const pdf = await pdfjsLib.getDocument(new Uint8Array(buffer)).promise;
+                ui.loader.classList.add('hidden');
+                ui.pdfContent.innerHTML = '';
+                ui.pdfContent.classList.remove('hidden');
+                
+                // Función para renderizar una página
+                const renderPage = async (page) => {
+                    const scale = Math.min(window.innerWidth > 768 ? 1.5 : 1.0, 1.5); // Escala menor en móvil
+                    const viewport = page.getViewport({ scale });
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+                    canvas.className = "pdf-page max-w-full h-auto bg-white";
+                    await page.render({ canvasContext: ctx, viewport }).promise;
+                    ui.pdfContent.appendChild(canvas);
+                };
+
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    await renderPage(page);
+                }
+            } catch { showError("Error PDF"); ui.loader.classList.add('hidden'); }
+        }
+
+        // --- Lógica de Edición y Info (sin cambios funcionales, solo se asegura la llamada) ---
+
+        function startEditing() {
+            const fileItem = state.files.find(f => f.id === state.currentTabId);
+            if (!fileItem || !fileItem.content) return;
+
+            state.isEditing = true;
+            ui.editBtn.classList.add('hidden');
+            ui.infoBtn.classList.add('hidden');
+            ui.editActions.classList.remove('hidden');
+
+            hideAllContent();
+            
+            ui.editorTextarea.value = fileItem.content;
+            ui.editorContainer.classList.remove('hidden');
+            ui.editorTextarea.focus();
+        }
+
+        function stopEditing() {
+            state.isEditing = false;
+            ui.editActions.classList.add('hidden');
+            
+            if(state.currentTabId) renderContentForTab(state.currentTabId);
+        }
+
+        function saveEditing() {
+            const fileItem = state.files.find(f => f.id === state.currentTabId);
+            if (!fileItem) return;
+
+            const newContent = ui.editorTextarea.value;
+            fileItem.content = newContent;
+            
+            const newFile = new File([newContent], fileItem.name, {
+                type: fileItem.file.type,
+                lastModified: new Date().getTime()
+            });
+            fileItem.file = newFile;
+            fileItem.size = newFile.size;
+            fileItem.lastModified = newFile.lastModified;
+
+            renderFileList();
+            
+            stopEditing();
+        }
+
+        function showInfo() {
+            const item = state.files.find(f => f.id === state.currentTabId);
+            if (!item) return;
+
+            ui.infoName.textContent = item.name;
+            ui.infoType.textContent = item.type.toUpperCase() + ` (${item.file.type || 'n/a'})`;
+            ui.infoSize.textContent = formatBytes(item.size);
+            ui.infoDate.textContent = new Date(item.lastModified).toLocaleString();
+            
+            ui.infoExtraContainer.classList.add('hidden');
+
+            if (item.type === 'image') {
+                const img = new Image();
+                img.onload = () => {
+                    ui.infoExtra.textContent = `${img.naturalWidth} x ${img.naturalHeight} px`;
+                    ui.infoExtraContainer.classList.remove('hidden');
+                    URL.revokeObjectURL(img.src);
+                };
+                img.src = URL.createObjectURL(item.file);
+            } 
+            else if (item.type === 'video' || item.type === 'audio') {
+                const media = document.createElement(item.type);
+                media.onloadedmetadata = () => {
+                    const duration = Math.round(media.duration) + 's';
+                    const dim = item.type === 'video' ? ` | ${media.videoWidth}x${media.videoHeight} px` : '';
+                    ui.infoExtra.textContent = `Duración: ${duration}${dim}`;
+                    ui.infoExtraContainer.classList.remove('hidden');
+                    URL.revokeObjectURL(media.src);
+                };
+                media.src = URL.createObjectURL(item.file);
+            }
+
+            ui.infoModal.classList.remove('hidden');
+        }
+
+        // --- Utils Generales ---
+        function deleteFile(id, e) {
+            e.stopPropagation();
+            const idx = state.files.findIndex(f => f.id === id);
+            if (idx > -1) {
+                state.files.splice(idx, 1);
+                
+                const tabIndex = state.openTabs.indexOf(id);
+                if (tabIndex > -1) {
+                    state.openTabs.splice(tabIndex, 1);
+                }
+
+                if (state.currentTabId === id) {
+                    if (state.openTabs.length > 0) {
+                        const newId = state.openTabs[Math.max(0, tabIndex - 1)];
+                        switchTab(newId); 
+                    } else {
+                        state.currentTabId = null;
+                        hideAllContent();
+                        ui.toolbar.classList.add('hidden');
+                        ui.emptyViewer.classList.remove('hidden');
+                        ui.contentArea.classList.add('hidden');
+                    }
+                }
+                
+                renderTabs();
+                renderFileList();
+
+                if(state.files.length === 0) updateUI();
+            }
+        }
+
+        function downloadFile(id, e) {
+            e.stopPropagation();
+            const item = state.files.find(f => f.id === id);
+            if (!item) return;
+            const url = URL.createObjectURL(item.file);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = item.name;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function detectType(file) {
+            const n = file.name.toLowerCase();
+            const t = file.type;
+            if (t === 'application/pdf' || n.endsWith('.pdf')) return 'pdf';
+            if (t.includes('json') || n.endsWith('.json')) return 'json';
+            if (n.endsWith('.md') || n.endsWith('.markdown')) return 'markdown';
+            if (t.startsWith('audio/') || ['.mp3','.wav','.ogg'].some(e => n.endsWith(e))) return 'audio';
+            if (t.startsWith('video/') || ['.mp4','.webm'].some(e => n.endsWith(e))) return 'video';
+            if (t.includes('zip') || n.endsWith('.zip')) return 'zip';
+            if (t.startsWith('image/')) return 'image';
+            if (t.startsWith('text/') || ['.js','.html','.css','.py','.java','.c','.xml','.csv','.txt'].some(e => n.endsWith(e))) return 'text';
+            return 'unknown';
+        }
+
+        function getIcon(type) {
+            const map = { pdf: ICONS.file, json: ICONS.file, markdown: ICONS.file, text: ICONS.file, image: ICONS.image, zip: ICONS.zip, video: ICONS.video, audio: ICONS.audio };
+            return map[type] || ICONS.file;
+        }
+
+        function hideAllContent() {
+            const vid = ui.videoContent.querySelector('video'); if(vid) { vid.pause(); vid.src = ''; }
+            const aud = ui.audioContent.querySelector('audio'); if(aud) { aud.pause(); aud.src = ''; }
+            [ui.textContent, ui.markdownContent, ui.pdfContent, ui.imgContent, ui.videoContent, ui.audioContent, ui.zipContent, ui.errorContent, ui.editorContainer].forEach(el => el.classList.add('hidden'));
+        }
+
+        function setupDragDrop(el) {
+            el.addEventListener('dragover', () => el.classList.add('border-theme-primary', 'bg-gray-50'));
+            el.addEventListener('dragleave', () => el.classList.remove('border-theme-primary', 'bg-gray-50'));
+            el.addEventListener('drop', () => el.classList.remove('border-theme-primary', 'bg-gray-50'));
+        }
+
+        function setupThemeColors() {
+            const update = (v, val) => {
+                document.documentElement.style.setProperty(v, val);
+                if (v === '--primary') {
+                    document.documentElement.style.setProperty('--primary-light', `color-mix(in srgb, ${val}, white 90%)`);
+                }
+            };
+            document.getElementById('color-primary').addEventListener('input', e => update('--primary', e.target.value));
+            document.getElementById('color-bg').addEventListener('input', e => update('--bg-app', e.target.value));
+            document.getElementById('color-panel').addEventListener('input', e => update('--bg-panel', e.target.value));
+            document.getElementById('reset-theme').addEventListener('click', () => {
+                update('--primary', '#2563eb'); update('--bg-app', '#f3f4f6'); update('--bg-panel', '#ffffff');
+                document.getElementById('color-primary').value = '#2563eb';
+                document.getElementById('color-bg').value = '#f3f4f6';
+                document.getElementById('color-panel').value = '#ffffff';
+            });
+        }
+
+        function showError(msg) { ui.errorContent.textContent = msg; ui.errorContent.classList.remove('hidden'); }
+        function formatBytes(b) { if(b===0)return'0 B'; const k=1024,i=Math.floor(Math.log(b)/Math.log(k)); return parseFloat((b/Math.pow(k,i)).toFixed(2))+' '+['B','KB','MB','GB'][i]; }
+        function escapeHtml(t) { return t.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m])); }
+    </script>
+</body>
+</html>
