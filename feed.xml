@@ -3,12 +3,60 @@
     <title>2damdi</title>
     <link href="https://sergio-ops10.github.io/2damdi/feed.xml" rel="self" />
     <link href="https://sergio-ops10.github.io/2damdi" />
-    <updated>2025-12-12T11:51:51+01:00</updated>
+    <updated>2026-01-07T17:09:49+01:00</updated>
     <author>
         <name>Sergio López Albuixech</name>
     </author>
     <id>https://sergio-ops10.github.io/2damdi</id>
 
+    <entry>
+        <title>Documetacion app Comic</title>
+        <author>
+            <name>Sergio López Albuixech</name>
+        </author>
+        <link href="https://sergio-ops10.github.io/2damdi/documetacion-app-comic.html"/>
+        <id>https://sergio-ops10.github.io/2damdi/documetacion-app-comic.html</id>
+        <media:content url="https://sergio-ops10.github.io/2damdi/media/posts/7/Captura-de-pantalla-2026-01-07-170937.png" medium="image" />
+
+        <updated>2026-01-07T17:09:49+01:00</updated>
+            <summary>
+                <![CDATA[
+                        <img src="https://sergio-ops10.github.io/2damdi/media/posts/7/Captura-de-pantalla-2026-01-07-170937.png" alt="" />
+                    Muetro el proceso que he tenido que hacer para conseguir esta aplicacion,&hellip;
+                ]]>
+            </summary>
+        <content type="html">
+            <![CDATA[
+                    <p><img src="https://sergio-ops10.github.io/2damdi/media/posts/7/Captura-de-pantalla-2026-01-07-170937.png" class="type:primaryImage" alt="" /></p>
+                <h2>Muetro el proceso que he tenido que hacer para conseguir esta aplicacion, hecha con gemini y con los siguientes prompts:</h2>
+<p> </p>
+<p class="query-text-line ng-star-inserted">Actua como un desarrollador profesional de aplicaciones web, necesito que me hagas en ccs html y jaaavascript lo siguiente: Crear una novela gráfica interactiva con imágenes y texto.</p>
+<p class="query-text-line ng-star-inserted">Los usuarios pueden decidir por donde transcurre parte de la trama y así habrá diferentes finales.</p>
+<p class="query-text-line ng-star-inserted">Un comic de viñetas se valorará mejor.</p>
+<figure class="post__image"><img loading="lazy"  src="https://sergio-ops10.github.io/2damdi/media/posts/7/Captura-de-pantalla-2026-01-07-165708.png" alt="" width="547" height="759" sizes="(max-width: 1024px) 100vw, 1024px" srcset="https://sergio-ops10.github.io/2damdi/media/posts/7/responsive/Captura-de-pantalla-2026-01-07-165708-xs.png 300w ,https://sergio-ops10.github.io/2damdi/media/posts/7/responsive/Captura-de-pantalla-2026-01-07-165708-sm.png 480w ,https://sergio-ops10.github.io/2damdi/media/posts/7/responsive/Captura-de-pantalla-2026-01-07-165708-md.png 768w ,https://sergio-ops10.github.io/2damdi/media/posts/7/responsive/Captura-de-pantalla-2026-01-07-165708-lg.png 1024w"></figure>
+<p>Haz la historia mucho más larga, quiero que se vean todas las imagenes ya que hay algunas q no se ven</p>
+<figure class="post__image"><img loading="lazy"  src="https://sergio-ops10.github.io/2damdi/media/posts/7/Captura-de-pantalla-2026-01-07-165814.png" alt="" width="510" height="845" sizes="(max-width: 1024px) 100vw, 1024px" srcset="https://sergio-ops10.github.io/2damdi/media/posts/7/responsive/Captura-de-pantalla-2026-01-07-165814-xs.png 300w ,https://sergio-ops10.github.io/2damdi/media/posts/7/responsive/Captura-de-pantalla-2026-01-07-165814-sm.png 480w ,https://sergio-ops10.github.io/2damdi/media/posts/7/responsive/Captura-de-pantalla-2026-01-07-165814-md.png 768w ,https://sergio-ops10.github.io/2damdi/media/posts/7/responsive/Captura-de-pantalla-2026-01-07-165814-lg.png 1024w"></figure>
+<p> </p>
+<p>hazlo para que haya más personajes, que pueda elegir que personaje usar y todo</p>
+<figure class="post__image"><img loading="lazy"  src="https://sergio-ops10.github.io/2damdi/media/posts/7/Captura-de-pantalla-2026-01-07-165850.png" alt="" width="527" height="332" sizes="(max-width: 1024px) 100vw, 1024px" srcset="https://sergio-ops10.github.io/2damdi/media/posts/7/responsive/Captura-de-pantalla-2026-01-07-165850-xs.png 300w ,https://sergio-ops10.github.io/2damdi/media/posts/7/responsive/Captura-de-pantalla-2026-01-07-165850-sm.png 480w ,https://sergio-ops10.github.io/2damdi/media/posts/7/responsive/Captura-de-pantalla-2026-01-07-165850-md.png 768w ,https://sergio-ops10.github.io/2damdi/media/posts/7/responsive/Captura-de-pantalla-2026-01-07-165850-lg.png 1024w"></figure>
+<p>Cambiame por completo la historia, quiero que sea un robo al banco central con 3 personajes distintos que escoger (No tenia ningun sentido la historia anterior).</p>
+<figure class="post__image"><img loading="lazy"  src="https://sergio-ops10.github.io/2damdi/media/posts/7/Captura-de-pantalla-2026-01-07-165955.png" alt="" width="571" height="328" sizes="(max-width: 1024px) 100vw, 1024px" srcset="https://sergio-ops10.github.io/2damdi/media/posts/7/responsive/Captura-de-pantalla-2026-01-07-165955-xs.png 300w ,https://sergio-ops10.github.io/2damdi/media/posts/7/responsive/Captura-de-pantalla-2026-01-07-165955-sm.png 480w ,https://sergio-ops10.github.io/2damdi/media/posts/7/responsive/Captura-de-pantalla-2026-01-07-165955-md.png 768w ,https://sergio-ops10.github.io/2damdi/media/posts/7/responsive/Captura-de-pantalla-2026-01-07-165955-lg.png 1024w"></figure>
+<p>Revisa todos los errores</p>
+<figure class="post__image"><img loading="lazy"  src="https://sergio-ops10.github.io/2damdi/media/posts/7/Captura-de-pantalla-2026-01-07-170152.png" alt="" width="567" height="379" sizes="(max-width: 1024px) 100vw, 1024px" srcset="https://sergio-ops10.github.io/2damdi/media/posts/7/responsive/Captura-de-pantalla-2026-01-07-170152-xs.png 300w ,https://sergio-ops10.github.io/2damdi/media/posts/7/responsive/Captura-de-pantalla-2026-01-07-170152-sm.png 480w ,https://sergio-ops10.github.io/2damdi/media/posts/7/responsive/Captura-de-pantalla-2026-01-07-170152-md.png 768w ,https://sergio-ops10.github.io/2damdi/media/posts/7/responsive/Captura-de-pantalla-2026-01-07-170152-lg.png 1024w"></figure>
+<p>quiero que haya muchos mas finales , en muchos casos se repite el de marcus con el swat</p>
+<figure class="post__image"><img loading="lazy"  src="https://sergio-ops10.github.io/2damdi/media/posts/7/Captura-de-pantalla-2026-01-07-170409.png" alt="" width="566" height="441" sizes="(max-width: 1024px) 100vw, 1024px" srcset="https://sergio-ops10.github.io/2damdi/media/posts/7/responsive/Captura-de-pantalla-2026-01-07-170409-xs.png 300w ,https://sergio-ops10.github.io/2damdi/media/posts/7/responsive/Captura-de-pantalla-2026-01-07-170409-sm.png 480w ,https://sergio-ops10.github.io/2damdi/media/posts/7/responsive/Captura-de-pantalla-2026-01-07-170409-md.png 768w ,https://sergio-ops10.github.io/2damdi/media/posts/7/responsive/Captura-de-pantalla-2026-01-07-170409-lg.png 1024w"></figure>
+<p>vuelve a pasar lo de antes el mismo final para mucahs opciones, quiero q por cada opcion que elija laa historia termine de una manera dsitinta crea ramificaciones completas para todas las opciones y que ninguna opcion comprata con otras otros finales</p>
+<figure class="post__image"><img loading="lazy"  src="https://sergio-ops10.github.io/2damdi/media/posts/7/Captura-de-pantalla-2026-01-07-170521.png" alt="" width="500" height="356" sizes="(max-width: 1024px) 100vw, 1024px" srcset="https://sergio-ops10.github.io/2damdi/media/posts/7/responsive/Captura-de-pantalla-2026-01-07-170521-xs.png 300w ,https://sergio-ops10.github.io/2damdi/media/posts/7/responsive/Captura-de-pantalla-2026-01-07-170521-sm.png 480w ,https://sergio-ops10.github.io/2damdi/media/posts/7/responsive/Captura-de-pantalla-2026-01-07-170521-md.png 768w ,https://sergio-ops10.github.io/2damdi/media/posts/7/responsive/Captura-de-pantalla-2026-01-07-170521-lg.png 1024w"></figure>
+<p> </p>
+<p>Lo que más problemas me ha dado han sido las fotos, ya que no conseguia que se vieran todas, he ido poniendo a mano todas las que fallaban y ya funcionan, y tambine la ramificacion de los personajes, ya que se cruzaban los guiones</p>
+<div class="gallery-wrapper"><div class="gallery"  data-is-empty="false" data-translation="Add images" data-columns="3">
+<figure class="gallery__item"><a href="https://sergio-ops10.github.io/2damdi/media/posts/7/gallery/Captura-de-pantalla-2026-01-07-170831.png" data-size="1793x682"><img loading="lazy" src="https://sergio-ops10.github.io/2damdi/media/posts/7/gallery/Captura-de-pantalla-2026-01-07-170831-thumbnail.png" alt="" width="768" height="292"></a></figure>
+<figure class="gallery__item"><a href="https://sergio-ops10.github.io/2damdi/media/posts/7/gallery/Captura-de-pantalla-2026-01-07-170844.png" data-size="1776x874"><img loading="lazy" src="https://sergio-ops10.github.io/2damdi/media/posts/7/gallery/Captura-de-pantalla-2026-01-07-170844-thumbnail.png" alt="" width="768" height="378"></a></figure>
+<figure class="gallery__item"><a href="https://sergio-ops10.github.io/2damdi/media/posts/7/gallery/Captura-de-pantalla-2026-01-07-170853.png" data-size="1799x585"><img loading="lazy" src="https://sergio-ops10.github.io/2damdi/media/posts/7/gallery/Captura-de-pantalla-2026-01-07-170853-thumbnail.png" alt="" width="768" height="250"></a></figure>
+</div></div>
+            ]]>
+        </content>
+    </entry>
     <entry>
         <title>Documentacion app Visor de Documentos</title>
         <author>
