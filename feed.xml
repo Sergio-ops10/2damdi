@@ -3,7 +3,7 @@
     <title>2damdi</title>
     <link href="https://sergio-ops10.github.io/2damdi/feed.xml" rel="self" />
     <link href="https://sergio-ops10.github.io/2damdi" />
-    <updated>2026-01-27T12:24:57+01:00</updated>
+    <updated>2026-01-27T12:28:56+01:00</updated>
     <author>
         <name>Sergio López Albuixech</name>
     </author>
@@ -16,15 +16,18 @@
         </author>
         <link href="https://sergio-ops10.github.io/2damdi/documentacion-monitoreo-servidores.html"/>
         <id>https://sergio-ops10.github.io/2damdi/documentacion-monitoreo-servidores.html</id>
+        <media:content url="https://sergio-ops10.github.io/2damdi/media/posts/8/Captura-de-pantalla-2026-01-27-122837.png" medium="image" />
 
         <updated>2026-01-27T12:24:57+01:00</updated>
             <summary>
                 <![CDATA[
+                        <img src="https://sergio-ops10.github.io/2damdi/media/posts/8/Captura-de-pantalla-2026-01-27-122837.png" alt="" />
                     Memoria del Proyecto Dashboard Análisis Técnico y Proceso de Resolución con IA&hellip;
                 ]]>
             </summary>
         <content type="html">
             <![CDATA[
+                    <p><img src="https://sergio-ops10.github.io/2damdi/media/posts/8/Captura-de-pantalla-2026-01-27-122837.png" class="type:primaryImage" alt="" /></p>
                 <div class="container"><header>
 <h1>Memoria del Proyecto Dashboard</h1>
 <p class="subtitle">Análisis Técnico y Proceso de Resolución con IA</p>
