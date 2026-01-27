@@ -3,12 +3,110 @@
     <title>2damdi</title>
     <link href="https://sergio-ops10.github.io/2damdi/feed.xml" rel="self" />
     <link href="https://sergio-ops10.github.io/2damdi" />
-    <updated>2026-01-07T17:09:49+01:00</updated>
+    <updated>2026-01-27T12:24:57+01:00</updated>
     <author>
         <name>Sergio López Albuixech</name>
     </author>
     <id>https://sergio-ops10.github.io/2damdi</id>
 
+    <entry>
+        <title>Documentacion monitoreo servidores</title>
+        <author>
+            <name>Sergio López Albuixech</name>
+        </author>
+        <link href="https://sergio-ops10.github.io/2damdi/documentacion-monitoreo-servidores.html"/>
+        <id>https://sergio-ops10.github.io/2damdi/documentacion-monitoreo-servidores.html</id>
+
+        <updated>2026-01-27T12:24:57+01:00</updated>
+            <summary>
+                <![CDATA[
+                    Memoria del Proyecto Dashboard Análisis Técnico y Proceso de Resolución con IA&hellip;
+                ]]>
+            </summary>
+        <content type="html">
+            <![CDATA[
+                <div class="container"><header>
+<h1>Memoria del Proyecto Dashboard</h1>
+<p class="subtitle">Análisis Técnico y Proceso de Resolución con IA</p>
+</header><!-- PARTE 1: ANÁLISIS DEL CÓDIGO -->
+<section>
+<h2>1. Identificación de Funciones Principales</h2>
+<p>A continuación se detallan los módulos de código responsables de las funciones críticas de la aplicación.</p>
+<h3>Backend y Lógica de Negocio (Python)</h3>
+<p>El archivo <code>app.py</code> centraliza toda la lógica.</p>
+<ul>
+<li><strong>Control de Servidor:</strong> Rutas <code>@app.route</code> que reciben peticiones HTTP y ejecutan lógica.
+<div class="code-block">@app.route('/accion/&lt;id&gt;/&lt;cmd&gt;') → Procesa encendido/apagado.</div>
+</li>
+<li><strong>Conexión SSH (Paramiko):</strong> Función <code>ejecutar_comando_ssh</code>. Es el núcleo de la comunicación remota.
+<div class="code-block">ssh.connect(ip, user, pass) ... ssh.exec_command(cmd)</div>
+</li>
+<li><strong>Gestión de VirtualBox:</strong> Uso de la librería nativa <code>subprocess</code> para invocar <code>VBoxManage</code>.</li>
+</ul>
+<h3>Almacenamiento de Datos</h3>
+<p>No se utiliza una base de datos SQL/NoSQL tradicional para mantener la ligereza del proyecto. En su lugar:</p>
+<ul>
+<li><strong>Almacenamiento en Memoria:</strong> La lista <code>SERVIDORES</code> en <code>app.py</code> actúa como base de datos volátil.
+<div class="code-block">SERVIDORES = [{ 'id': 1, 'nombre': 'Ubuntu Server 1', ... }]</div>
+</li>
+<li><strong>Persistencia de Configuración:</strong> El <strong>Frontend</strong> utiliza <code>localStorage</code> del navegador para guardar preferencias del usuario (Tema Oscuro/Claro).</li>
+</ul>
+<h3>Manejo de Archivos y Recursos</h3>
+<ul>
+<li><strong>Archivos Estáticos:</strong> Flask sirve el <code>index.html</code> como plantilla estática.</li>
+<li><strong>Capturas de Pantalla (Blob):</strong> La función <code>get_vm_screenshot_bytes</code> genera archivos temporales PNG con VBoxManage, lee sus bytes y luego elimina el archivo del disco para no generar basura.</li>
+</ul>
+</section>
+<!-- PARTE 2: PROCESO DE RESOLUCIÓN -->
+<section>
+<h2>2. Proceso de Resolución (Prompts e IAs)</h2>
+<p>El desarrollo se realizó de manera iterativa utilizando Inteligencia Artificial Generativa. A continuación se muestra la secuencia de "Prompts" (peticiones) y la evolución de la aplicación.</p>
+<div class="prompt-card">
+<h3>Etapa 1: MVP - Control Básico</h3>
+<p><strong>IA Usada:</strong> Google Gemini 2.0 (Modelo de Razonamiento)</p>
+<p class="prompt-text">Prompt: "Quiero una aplicación web para controlar mis servidores Ubuntu en VirtualBox. Que pueda encenderlos y apagarlos."</p>
+<p><strong>Resultado:</strong> Una interfaz simple con botones. Se estableció la estructura Flask base.</p>
+<div class="prompt-card">
+<h3>Etapa 2: Monitor Real (Live View)</h3>
+<p><strong>IA Usada:</strong> Google Gemini 2.0</p>
+<p class="prompt-text">Prompt: "Añade una sección para ver la pantalla de las máquinas en tiempo real."</p>
+<p><strong>Resultado:</strong> Implementación del endpoint de capturas de pantalla y refresco automático en JS cada 500ms.</p>
+<div class="prompt-card">
+<h3>Etapa 3: El Intento de la Terminal</h3>
+<p><strong>IA Usada:</strong> Google Gemini 2.0</p>
+<p class="prompt-text">Prompt: "Quiero una terminal real en la web para escribir comandos."</p>
+<p><strong>Desafío:</strong> Se integró <code>xterm.js</code> y sesiones persistentes SSH. Sin embargo, la complejidad técnica y la UX no fueron satisfactorias.</p>
+</div>
+<div class="prompt-card">
+<h3>Etapa 4: Versión Final (Métricas y Estética) -&gt; v2.0</h3>
+<p><strong>IA Usada:</strong> Google Gemini 2.0</p>
+<p class="prompt-text">Prompt: "Quita la terminal. Mejora la aplicación con gráficas de CPU/RAM, un diseño 'Premium' y modo oscuro."</p>
+<p><strong>Resolución Final:</strong></p>
+<ul>
+<li>Limpieza de código (eliminación de terminal).</li>
+<li>Integración de libreria <code>Chart.js</code>.</li>
+<li>Implementación de extracción de métricas vía SSH (parsing de <code>top</code> y <code>free</code>).</li>
+<li>Refactorización CSS para Soporte de Temas.</li>
+</ul>
+<div class="image-placeholder">[INSERTAR CAPTURA DE LA VERSIÓN FINAL CON GRÁFICAS]</div>
+</div>
+</div>
+</div>
+</section>
+<!-- PARTE 3: CÓDIGO FUENTE RELEVANTE -->
+<section>
+<h2>3. Código Fuente Destacado</h2>
+<h3>app.py (Extracto de Métricas) <span class="tag tag-py">PYTHON</span></h3>
+<div class="code-block">def get_server_metrics(srv): # Comando combinado para eficiencia cmd = "top -bn1 | grep Cpu ... &amp;&amp; free -m ..." res = ejecutar_comando_ssh(srv, cmd) # Parsing de texto a JSON return { "cpu": cpu_val, "ram": ram_val }</div>
+<h3>index.html (Lógica de Gráficos) <span class="tag tag-js">JS</span></h3>
+<div class="code-block">CHARTS[id] = new Chart(ctx, { type: 'bar', data: { datasets: [{ label: 'Uso %', data: [cpu, ram, disk] }] }, options: { indexAxis: 'y' } });</div>
+</section>
+<footer style="text-align: center; color: var(--text-muted); margin-top: 50px;">
+<p>Documentación generada para Trabajo de Clase / Resolución de Práctica</p>
+</footer></div>
+            ]]>
+        </content>
+    </entry>
     <entry>
         <title>Documetacion app Comic</title>
         <author>
