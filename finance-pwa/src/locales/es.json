@@ -1,0 +1,83 @@
+{
+    "app_title": "FinPWA",
+    "sidebar": {
+        "dashboard": "Panel Principal",
+        "transactions": "Transacciones",
+        "files": "Archivos",
+        "settings": "Configuración",
+        "logout": "Cerrar Sesión"
+    },
+    "dashboard": {
+        "title": "Panel Principal",
+        "balance": "Balance Total",
+        "income": "Ingresos",
+        "expense": "Gastos",
+        "recent_activity": "Actividad Reciente",
+        "distribution": "Distribución de Gastos",
+        "income_distribution": "Distribución de Ingresos",
+        "no_data": "Sin datos disponibles aún"
+    },
+    "transactions": {
+        "title": "Mis Transacciones",
+        "add_new": "Añadir Transacción",
+        "amount": "Cantidad",
+        "type": "Tipo",
+        "income": "Ingreso",
+        "expense": "Gasto",
+        "category": "Categoría",
+        "description": "Descripción",
+        "insufficient_funds": "Saldo insuficiente para realizar este gasto",
+        "desc_placeholder_income": "¿En qué quieres gastar este dinero?",
+        "desc_placeholder_expense": "¿En qué has gastado este dinero?",
+        "save_btn": "Guardar Movimiento",
+        "history": "Historial Reciente",
+        "no_history": "No hay movimientos registrados aún.",
+        "categories": {
+            "general": "General",
+            "food": "Alimentación",
+            "transport": "Transporte",
+            "entertainment": "Ocio",
+            "health": "Salud",
+            "home": "Vivienda"
+        }
+    },
+    "files": {
+        "title": "Gestión de Archivos",
+        "upload_new": "Subir Nuevo Archivo",
+        "upload_desc": "Sube recibos, facturas o documentos (PDF, Imágenes, Audio).",
+        "choose": "Seleccionar Archivo",
+        "uploading": "Subiendo...",
+        "recent": "Mis Documentos",
+        "no_files": "No hay archivos subidos aún.",
+        "my_archive": "Mi Historial",
+        "storage_info": "Aquí puedes gestionar todos tus documentos almacenados de forma segura.",
+        "items": "elementos",
+        "view": "Ver",
+        "download": "Descargar",
+        "delete": "Borrar",
+        "delete_confirm": "¿Estás seguro de que quieres borrar este archivo?",
+        "upload_success": "Archivo subido con éxito",
+        "upload_error": "Error al subir"
+    },
+    "settings": {
+        "title": "Configuración",
+        "profile": "Perfil de Usuario",
+        "logout": "Cerrar Sesión",
+        "language": "Idioma",
+        "clear_data": "Borrar Todos los Datos",
+        "clear_confirm": "¿Estás seguro? Esta acción no se puede deshacer.",
+        "about": "Acerca de",
+        "version": "FinPWA v1.0.0",
+        "desc": "Desarrollado para gestión de finanzas personales con sincronización en la nube."
+    },
+    "auth": {
+        "login": "Iniciar Sesión",
+        "register": "Crear Cuenta",
+        "need_account": "¿Necesitas cuenta? Regístrate",
+        "have_account": "¿Ya tienes cuenta? Entra",
+        "magic_link": "O enviar Enlace Mágico",
+        "processing": "Procesando...",
+        "reg_success": "¡Registro con éxito! Ya puedes entrar.",
+        "magic_link_sent": "¡Listo! Mira tu correo para el enlace."
+    }
+}

@@ -1,0 +1,83 @@
+{
+  "app_title": "FinPWA",
+  "sidebar": {
+    "dashboard": "Dashboard",
+    "transactions": "Transactions",
+    "files": "Files",
+    "settings": "Settings",
+    "logout": "Logout"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "balance": "Total Balance",
+    "income": "Income",
+    "expense": "Expenses",
+    "recent_activity": "Recent Activity",
+    "distribution": "Expense Distribution",
+    "income_distribution": "Income Distribution",
+    "no_data": "No data available yet"
+  },
+  "transactions": {
+    "title": "My Transactions",
+    "add_new": "Add Transaction",
+    "amount": "Amount",
+    "type": "Type",
+    "income": "Income",
+    "expense": "Expense",
+    "category": "Category",
+    "description": "Description",
+    "insufficient_funds": "Insufficient funds to perform this expense",
+    "desc_placeholder_income": "What do you want to spend this on?",
+    "desc_placeholder_expense": "What did you spend this on?",
+    "save_btn": "Save Transaction",
+    "history": "Recent History",
+    "no_history": "No transactions registered yet.",
+    "categories": {
+      "general": "General",
+      "food": "Food",
+      "transport": "Transport",
+      "entertainment": "Entertainment",
+      "health": "Health",
+      "home": "Home"
+    }
+  },
+  "files": {
+    "title": "File Management",
+    "upload_new": "Upload New File",
+    "upload_desc": "Upload receipts, invoices, or documents (PDF, Images, Audio).",
+    "choose": "Choose File",
+    "uploading": "Uploading...",
+    "recent": "My Documents",
+    "no_files": "No files uploaded yet.",
+    "my_archive": "My History",
+    "storage_info": "Here you can manage all your documents stored securely.",
+    "items": "items",
+    "view": "View",
+    "download": "Download",
+    "delete": "Delete",
+    "delete_confirm": "Are you sure you want to delete this file?",
+    "upload_success": "File uploaded successfully",
+    "upload_error": "Error uploading"
+  },
+  "settings": {
+    "title": "Settings",
+    "profile": "User Profile",
+    "logout": "Logout",
+    "language": "Language",
+    "clear_data": "Clear All Data",
+    "clear_confirm": "Are you sure? This action cannot be undone.",
+    "about": "About",
+    "version": "FinPWA v1.0.0",
+    "desc": "Developed for personal finance management with cloud sync."
+  },
+  "auth": {
+    "login": "Login",
+    "register": "Register",
+    "need_account": "Need an account? Register",
+    "have_account": "Already have an account? Login",
+    "magic_link": "Or send Magic Link",
+    "processing": "Processing...",
+    "reg_success": "Registration successful! You can now login.",
+    "magic_link_sent": "Check your email for the magic link!"
+  }
+}
