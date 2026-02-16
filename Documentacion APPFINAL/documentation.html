@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinPWA - Documentación del Proyecto</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Fira+Code&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00ff9d;
+            --primary-dim: rgba(0, 255, 157, 0.1);
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --text: #e2e8f0;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --gradient: linear-gradient(135deg, #00ff9d 0%, #00b8ff 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        /* Hero Section */
+        header {
+            min-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 2rem;
+            background: radial-gradient(circle at top right, #1e293b 0%, transparent 40%),
+                radial-gradient(circle at bottom left, #0f172a 0%, transparent 40%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        h1 {
+            font-size: 4rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: var(--gradient);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: var(--primary);
+            /* Fallback */
+            letter-spacing: -2px;
+        }
+
+        .subtitle {
+            font-size: 1.5rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin-bottom: 3rem;
+        }
+
+        .badges {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 3rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .badge {
+            background: var(--primary-dim);
+            color: var(--primary);
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            font-weight: 600;
+            border: 1px solid var(--primary);
+            font-size: 0.9rem;
+        }
+
+        /* Content Layout */
+        main {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+        }
+
+        section {
+            margin-bottom: 6rem;
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h2 {
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            position: relative;
+            display: inline-block;
+        }
+
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background: var(--primary);
+            border-radius: 2px;
+        }
+
+        /* Cards Grid */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            padding: 2rem;
+            border-radius: 1rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px -10px rgba(0, 255, 157, 0.15);
+            border-color: var(--primary);
+        }
+
+        .card-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+
+        .card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Tech Stack */
+        .tech-stack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .tech-item {
+            background: #2d3748;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Steps Timeline */
+        .timeline {
+            position: relative;
+            padding-left: 2rem;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--border);
+        }
+
+        .step {
+            position: relative;
+            margin-bottom: 3rem;
+        }
+
+        .step::before {
+            content: '';
+            position: absolute;
+            left: -2.35rem;
+            top: 0.5rem;
+            width: 1rem;
+            height: 1rem;
+            background: var(--bg);
+            border: 2px solid var(--primary);
+            border-radius: 50%;
+            z-index: 1;
+        }
+
+        .step h3 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        /* Code Blocks */
+        pre {
+            background: #000;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            border: 1px solid var(--border);
+            margin: 1rem 0;
+        }
+
+        code {
+            font-family: 'Fira Code', monospace;
+            color: #a5b4fc;
+        }
+
+        /* CTA */
+        .cta-container {
+            text-align: center;
+            padding: 4rem;
+            background: var(--card-bg);
+            border-radius: 1rem;
+            margin-top: 4rem;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 1rem 2.5rem;
+            background: var(--primary);
+            color: #000;
+            text-decoration: none;
+            font-weight: 800;
+            border-radius: 0.5rem;
+            font-size: 1.2rem;
+            transition: transform 0.2s;
+            margin-top: 2rem;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px var(--primary);
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            main {
+                padding: 2rem 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="badges">
+            <span class="badge">Vite + React</span>
+            <span class="badge">Supabase</span>
+            <span class="badge">PWA Ready</span>
+            <span class="badge">APK Compatible</span>
+        </div>
+        <h1>FinPWA</h1>
+        <p class="subtitle">La evolución definitiva de tu gestión financiera personal. Documentación técnica y guía de
+            desarrollo.</p>
+        <a href="#overview"
+            style="color: var(--primary); text-decoration: none; border-bottom: 1px dashed var(--primary);">Comenzar
+            Aventura ↓</a>
+    </header>
+
+    <main>
+        <section id="overview">
+            <h2>Visión General</h2>
+            <p style="font-size: 1.2rem; margin-bottom: 2rem;">
+                FinPWA no es solo una hoja de cálculo glorificada. Es una <strong>Aplicación Web Progresiva
+                    (PWA)</strong> completa, diseñada para funcionar como una app nativa en tu móvil Android, pero con
+                la flexibilidad de la web. Combina la velocidad de una base de datos local con la seguridad de la nube.
+            </p>
+            <div class="grid">
+                <div class="card">
+                    <div class="card-icon">⚡</div>
+                    <h3>Offline First</h3>
+                    <p>Funciona sin internet gracias a IndexedDB (Dexie.js). Los datos se sincronizan cuando vuelves a
+                        estar online.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">☁️</div>
+                    <h3>Synchro Cloud</h3>
+                    <p>Tus datos viajan seguros a Supabase. Inicia sesión en tu PC y ve lo mismo que en tu móvil.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">🔐</div>
+                    <h3>Privacidad Total</h3>
+                    <p>Aislamiento de datos nivel empresarial. Lo que es tuyo es tuyo; otros usuarios no ven tus gastos.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section id="stack">
+            <h2>Arquitectura Tecnológica</h2>
+            <p style="margin-bottom: 2rem;">Selección curada de las tecnologías más potentes y modernas del 2026.</p>
+            <div class="grid">
+                <div class="card">
+                    <h3>Frontend Core</h3>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="margin-bottom: 0.5rem;">🔹 <strong>React (Vite)</strong>: Velocidad de desarrollo
+                            extrema.</li>
+                        <li style="margin-bottom: 0.5rem;">🔹 <strong>TypeScript</strong>: Código robusto y sin errores
+                            tontos.</li>
+                        <li style="margin-bottom: 0.5rem;">🔹 <strong>Vanilla CSS</strong>: Diseño Glassmorphism
+                            personalizado sin el peso de Bootstrap.</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>Backend & Data</h3>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="margin-bottom: 0.5rem;">🔹 <strong>Supabase</strong>: Autenticación segura y
+                            PostgreSQL en la nube.</li>
+                        <li style="margin-bottom: 0.5rem;">🔹 <strong>Dexie.js</strong>: Base de datos completa dentro
+                            de tu navegador.</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>PWA & Mobile</h3>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="margin-bottom: 0.5rem;">🔹 <strong>Vite PWA Plugin</strong>: Service Workers
+                            automáticos.</li>
+                        <li style="margin-bottom: 0.5rem;">🔹 <strong>Manifest V3</strong>: Cumplimiento estricto para
+                            generar APKs de Android.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="code-analysis">
+            <h2>Análisis de Código Core</h2>
+            <p style="margin-bottom: 2rem;">Los motores que impulsan FinPWA. Aquí está la magia explicada.</p>
+
+            <div class="step">
+                <h3>1. Sincronización Inteligente (DataService)</h3>
+                <p>Este método es el corazón de la App. Intenta descargar datos de la nube (Supabase) y, si hay éxito,
+                    limpia la base de datos local (Dexie) para evitar duplicados, garantizando una "fuente de verdad"
+                    única.</p>
+                <div style="position: relative;">
+                    <div
+                        style="position: absolute; top: 0; right: 0; padding: 0.5rem; color: #64748b; font-size: 0.8rem;">
+                        src/services/dataService.ts</div>
+                    <pre><code>async pullUserData() {
+    if (!navigator.onLine) return; // Si no hay internet, no hacemos nada
+
+    // 1. Pedimos datos a Supabase
+    const { data, error } = await supabase.from('transactions').select('*');
+    
+    if (data) {
+        // 2. Limpiamos local para evitar conflictos
+        await db.transactions.clear(); 
+        
+        // 3. Guardamos todo en el navegador (para uso offline futuro)
+        for (const tx of data) {
+            await db.transactions.add({
+                ...tx,
+                synced: 1 // Marcamos como sincronizado
+            });
+        }
+    }
+}</code></pre>
+                </div>
+            </div>
+
+            <div class="step">
+                <h3>2. Gestión de Sesión (AuthContext)</h3>
+                <p>Escuchamos cambios en la autenticación en tiempo real. Si el usuario entra, traemos sus datos. Si
+                    sale, borramos todo lo local por seguridad.</p>
+                <div style="position: relative;">
+                    <div
+                        style="position: absolute; top: 0; right: 0; padding: 0.5rem; color: #64748b; font-size: 0.8rem;">
+                        src/contexts/AuthContext.tsx</div>
+                    <pre><code>const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    setSession(session);
+    
+    if (event === 'SIGNED_IN' && session) {
+        // Usuario entra -> Traer sus datos
+        dataService.pullUserData();
+    } else if (event === 'SIGNED_OUT') {
+        // Usuario sale -> Borrar datos locales (Privacidad)
+        dataService.clearLocalData();
+    }
+});</code></pre>
+                </div>
+            </div>
+
+            <div class="step">
+                <h3>3. Configuración PWA (Vite Config)</h3>
+                <p>La receta secreta para que Android acepte nuestra web como una App nativa. Definimos iconos, colores
+                    y el "scope" para que funcione en subcarpetas de GitHub.</p>
+                <div style="position: relative;">
+                    <div
+                        style="position: absolute; top: 0; right: 0; padding: 0.5rem; color: #64748b; font-size: 0.8rem;">
+                        vite.config.ts</div>
+                    <pre><code>manifest: {
+    name: 'Personal Finance PWA',
+    display: 'standalone', // Se abre sin barra de navegador
+    scope: '/2damdi/app/', // Importante para GitHub Pages
+    start_url: '/2damdi/app/',
+    icons: [
+        {
+            src: 'pwa-512x512.png', // Debe ser PNG real
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any maskable' // Crucial para Android modernos
+        }
+    ]
+}</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <section id="journey">
+            <h2>El Viaje de Desarrollo</h2>
+            <div class="timeline">
+                <div class="step">
+                    <h3>Fase 1: La Fundación</h3>
+                    <p>Comenzamos configurando el esqueleto con Vite y React. Establecimos las variables CSS globales
+                        para el tema oscuro/neón y configuramos el enrutamiento con React Router.</p>
+                </div>
+                <div class="step">
+                    <h3>Fase 2: El Cerebro de Datos</h3>
+                    <p>Implementamos el sistema de "Doble Capa":</p>
+                    <pre>Usuario -> App -> Dexie (Local) <--> Sync Service <--> Supabase (Nube)</pre>
+                    <p>Esto garantiza que la app sea rapidísima y nunca pierda datos, haya o no haya internet.</p>
+                </div>
+                <div class="step">
+                    <h3>Fase 3: Experiencia de Usuario (UX)</h3>
+                    <p>Diseñamos el Dashboard con KPIs en tiempo real. Creamos el sistema de transacciones con filtros y
+                        validaciones inteligentes. Añadimos el soporte multi-idioma (i18n) para Inglés y Español.</p>
+                </div>
+                <div class="step">
+                    <h3>Fase 4: Adaptación Móvil</h3>
+                    <p>El reto final. Convertimos el diseño de escritorio en una experiencia táctil perfecta:</p>
+                    <ul>
+                        <li>Menú hamburguesa deslizante.</li>
+                        <li>Gestión de iconos y Assets para Android.</li>
+                        <li>Configuración del Manifest para instalación nativa.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="deployment">
+            <h2>Despliegue y APK</h2>
+            <p>El proceso para llevar esto al mundo real:</p>
+            <div class="card" style="margin-top: 2rem; border-color: var(--primary);">
+                <h3>🚀 Pipeline de Producción</h3>
+                <ol style="padding-left: 1.5rem; margin-top: 1rem;">
+                    <li style="margin-bottom: 1rem;">
+                        <strong>Build Optimizado:</strong>
+                        <br><code>npm run build</code> genera una carpeta <code>dist</code> minificada y ligera.
+                    </li>
+                    <li style="margin-bottom: 1rem;">
+                        <strong>Hosting en GitHub Pages:</strong>
+                        <br>Alojamos la app en una subruta <code>/2damdi/app/</code>, configurando cuidadosamente el
+                        <code>base path</code> en Vite.
+                    </li>
+                    <li style="margin-bottom: 1rem;">
+                        <strong>Generación de APK:</strong>
+                        <br>Usamos <strong>PWABuilder</strong> para empaquetar nuestra web en un archivo Android nativo,
+                        superando todas las validaciones de iconos y manifest.
+                    </li>
+                </ol>
+            </div>
+        </section>
+
+        <div class="cta-container">
+            <h2>¿Listo para verla en acción?</h2>
+            <p style="color: var(--text-muted); margin-top: 1rem;">Accede a la versión en vivo o descarga el código
+                fuente.</p>
+            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                <a href="https://sergio-ops10.github.io/2damdi/app/" target="_blank" class="btn">Abrir Web App</a>
+                <a href="https://github.com/sergio-ops10/2damdi" target="_blank" class="btn"
+                    style="background: transparent; border: 2px solid var(--primary); color: var(--primary);">Ver en
+                    GitHub</a>
+            </div>
+        </div>
+    </main>
+
+    <footer style="text-align: center; padding: 2rem; border-top: 1px solid var(--border); margin-top: 4rem;">
+        <p style="color: var(--text-muted);">FinPWA 2026 - Documentación Técnica</p>
+    </footer>
+</body>
+
+</html>
